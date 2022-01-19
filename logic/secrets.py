@@ -1,110 +1,164 @@
-def reveal(self, row, col):
-    self.boxes_left
-    self.g_over_alert
-    self.g_over_flag
-    self.num_bombs
-    if self.g_over_flag == 1:
-        return
-    r_button = grid_data[row][col][0]
-    try:
-        if r_button['text'] != "X":
-            r_button.grid_remove()
-            grid_data[row][col][0] = 0
-            r_button.destroy()
-            r_lbl = grid_data[row][col][1]
-            self.boxes_left -= 1
-            if r_lbl['text'] == "":
-                for x in range(-1, 2):
-                    for y in range(-1, 2):
-                        remove_row = row + x
-                        remove_col = col + y
-                        try:
-                            if(remove_row < 0 or remove_col < 0 or
-                            remove_row >= grid_size[0] or
-                            remove_col >= grid_size[1]
-                            ):
-                                pass
-                            else:
-                                self.reveal(remove_row, remove_col)
-                        except IndexError:
-                            print("Could not remove box at: {0},{1}"
-                                .format(remove_row, remove_col))
-                            continue
-            elif r_lbl['text'] == "X":
-                self.g_over_flag = 1
-                for x in range(0, grid_size[0]):
-                    for y in range(0, grid_size[1]):
-                        if grid_data[x][y][0] != 0:
-                            grid_data[x][y][0].destroy()
-                print("Game over!")
-                self.g_over_alert['text'] = "Game Over!"
-                self.g_over_alert.grid(column=0, row=1)
-                return
-    except TypeError:
-        pass
-    if self.boxes_left == self.num_bombs:
-        self.g_over_alert['text'] = "Chicken Dinner!"
-        self.g_over_alert.grid(column=0, row=1)
-        self.g_over_flag = 1
-        print('Game won!')
-    return 0
+from . import gamestate, CLUE_COORDS
 
+def reveal(gameboard, row, col) -> str:
+    """
+    Recursively reveals tiles and their neighbors.
 
-def auto_reveal(e, row, col, num_clicks):
-    if num_clicks != auto_reveal_var.get():
-        return
-    label_ar = e.widget
+    Returns a lib.gamestate string
+    """
+    cell = gameboard[row][col]
+
+    if cell['is_flagged'] is True:      # If the tile is flagged
+        return gamestate.CONTINUE
+    if cell['is_revealed'] is True:     # Skip everything if the box is already revealed
+        return gamestate.CONTINUE
+    if cell['clue'] == 'mine':          # If cell is a mine, end the game
+        return gamestate.LOSE
+
+    cell['is_revealed'] = True
+
+    if cell['clue'] is not None:        # If the clue is not blank, only reveal that clue
+        return gamestate.CONTINUE
+
+    for c in CLUE_COORDS:
+        remove_col = cell['coord'][0] + c[0]
+        remove_row = cell['coord'][1] + c[1]
+        try:
+            state = reveal(gameboard, remove_row, remove_col)
+        except IndexError:
+            continue
+    
+        if state in [gamestate.LOSE, gamestate.WIN]:
+            return state
+
+    return check_win_condition(gameboard)
+
+def reveal_all(gameboard):
+    for cell in [row for row in gameboard]:
+        cell['is_revealed'] = True
+    
+def check_win_condition(gameboard) -> str:
+    """
+    Check the number of boxes left against the number of flaggs placed.
+
+    If the numbers are equal, then the player has won.
+
+    Returns a lib.gamestate string
+    """
+    num_boxes_left = 0
     num_flags = 0
-    if label_ar['text'] == "":
+    for cell in [row for row in gameboard]:
+        if cell['is_revealed'] is False:
+            num_boxes_left += 1
+        elif cell['is_flagged'] is True:
+            num_flags += 1
+    
+    if num_boxes_left == num_flags:
+        return gamestate.WIN
+    else:
+        return gamestate.CONTINUE
+
+def quick_reveal(gameboard, row, col) -> str:
+    """
+    Automatically reveal tiles by clicking (or double clicking) on a clue
+    if the number of flags has been satisfied. Will cause a game over if one
+    of the revealed tiles is a mine.
+    """
+    cell = gameboard[row][col]
+    clue = cell['clue']
+
+    # Can't quick-reveal anything if there isn't a clue off which to base the number
+    # of surrounding bombs
+    if clue is None:
         return
-    if label_ar['text'] != "" and label_ar['text'] != "X":
-        for x in range(-1, 2):
-            for y in range(-1, 2):
-                remove_row = row + x
-                remove_col = col + y
-                try:
-                    if(remove_row < 0 or remove_col < 0 or
-                            remove_row >= grid_size[0] or
-                            remove_col >= grid_size[1]):
-                        continue
-                    elif grid_data[remove_row][remove_col][0]['text'] == "X":
-                        num_flags += 1
-                except (AttributeError, TypeError):
-                    continue
-    if num_flags == int(label_ar['text']):
-        for x in range(-1, 2):
-            for y in range(-1, 2):
-                remove_row = row + x
-                remove_col = col + y
-                try:
-                    flag_b = grid_data[remove_row][remove_col][0]
-                    if(remove_row < 0 or remove_col < 0 or
-                            remove_row >= grid_size[0] or
-                            remove_col >= grid_size[1]):
-                        continue
-                    elif flag_b['text'] == "":
-                        re = reveal(remove_row, remove_col)
-                        if re == 1:
-                            return
-                except (TypeError, AttributeError, IndexError) as err:
-                    continue
 
-def flag(self, row, col):
-    self.g_over_flag
-    if self.g_over_flag == 1:
+    neighbors = get_neighbor_cells(gameboard, row, col)
+
+    # Count the flags among the 8 neighboring cells
+    num_flags = len([n for n in neighbors if n['is_flagged'] is True])
+
+    # Player probably doesn't want to reveal anything if the number of flags
+    # doesn't equal the clue number
+    if num_flags != clue:
         return
-    try:
-        r_button = grid_data[row][col][0]
-        if r_button['text'] == "X":
-            r_button['text'] = ""
-        elif r_button['text'] == "":
-            r_button['text'] = "X"
-    except TypeError:
-        print("Error because of this: ", row)
 
-def get_num_bombs():
-    gs = grid_height.get() * grid_width.get()
-    self.num_bombs = floor(log(gs, 20) * difficulty[difficulty['lvl']] * gs)
+    # Reveal the neighboring cells if they are not flagged, and return a winning
+    # or losing gamestate. Otherwise, return CONTINUE
+    unflagged_neighbors = [n for n in neighbors if n['is_flagged'] is False]
+    for neighbor in unflagged_neighbors:
+        state = reveal(gameboard, *neighbor['coords'])
+        if state in [gamestate.LOSE, gamestate.WIN]:
+            return state
 
-self.num_bombs
-self.boxes_left
+    return gamestate.CONTINUE
+
+def get_neighbor_cells(gameboard, row, col):
+    cell = gameboard[row][col]
+    neighbors = []
+    for coords in CLUE_COORDS:
+        neighbor_row = coords[0] + cell['coords'][0]
+        neighbor_col = coords[1] + cell['coords'][1]
+
+        try:
+            neighbor_cell = gameboard[neighbor_row][neighbor_col]
+        except IndexError:
+            continue
+
+        neighbors.append(neighbor_cell)
+
+    return neighbors
+
+def flag(gameboard, row, col):
+    flag = gameboard[row][col]['is_flagged']
+    flag = not flag
+
+# def reveal_old(self, row, col):
+#     self.boxes_left
+#     self.g_over_alert
+#     self.g_over_flag
+#     self.num_mines
+#     if self.g_over_flag == 1:
+#         return
+#     r_button = grid_data[row][col][0]
+#     try:
+#         if r_button['text'] != "X":
+#             r_button.grid_remove()
+#             grid_data[row][col][0] = 0
+#             r_button.destroy()
+#             r_lbl = grid_data[row][col][1]
+#             self.boxes_left -= 1
+#             if r_lbl['text'] == "":
+#                 for x in range(-1, 2):
+#                     for y in range(-1, 2):
+#                         remove_row = row + x
+#                         remove_col = col + y
+#                         try:
+#                             if(remove_row < 0 or remove_col < 0 or
+#                             remove_row >= grid_size[0] or
+#                             remove_col >= grid_size[1]
+#                             ):
+#                                 pass
+#                             else:
+#                                 self.reveal(remove_row, remove_col)
+#                         except IndexError:
+#                             print("Could not remove box at: {0},{1}"
+#                                 .format(remove_row, remove_col))
+#                             continue
+#             elif r_lbl['text'] == "X":
+#                 self.g_over_flag = 1
+#                 for x in range(0, grid_size[0]):
+#                     for y in range(0, grid_size[1]):
+#                         if grid_data[x][y][0] != 0:
+#                             grid_data[x][y][0].destroy()
+#                 print("Game over!")
+#                 self.g_over_alert['text'] = "Game Over!"
+#                 self.g_over_alert.grid(column=0, row=1)
+#                 return
+#     except TypeError:
+#         pass
+#     if self.boxes_left == self.num_mines:
+#         self.g_over_alert['text'] = "Chicken Dinner!"
+#         self.g_over_alert.grid(column=0, row=1)
+#         self.g_over_flag = 1
+#         print('Game won!')
+#     return 0

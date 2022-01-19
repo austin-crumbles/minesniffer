@@ -1,7 +1,7 @@
 import threading
 from time import sleep
 
-class BombTimer(threading.Thread):
+class GameTimer(threading.Thread):
     """
     Creates a non-reusable timer that counts upward
     """
@@ -47,7 +47,7 @@ class BombTimer(threading.Thread):
             return f"{self.hour}:{self.min:02}:{self.sec:02}"
 
 if __name__ == "__main__":
-    t = BombTimer()
+    t = GameTimer()
     t.start()
     input()
     t.stop()
