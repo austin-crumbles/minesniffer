@@ -1,6 +1,7 @@
-import numpy as np
+import math
 from random import randint
-from . import gamestate, CLUE_COORDS
+from . import gamestate
+from .coords import CLUE_COORDS
 from .timer import GameTimer
 
 MINE_DISTRIBUTION = {
@@ -22,51 +23,50 @@ class GameData:
         """
         Reset all values to beginning-of-game state
         """
-        self.set_gameboard()
-        self.set_num_mines()
+        self.create_gameboard()
         self.timer = GameTimer()
         self.game_state = gamestate.IDLE
 
     def get_num_mines(self):
         if self.num_mines is None:
-            self.set_num_mines()
+            self.calc_num_mines()
         
         return self.num_mines
 
-    def set_num_mines(self):
+    def calc_num_mines(self):
         """
         Calculate number of mines based on the grid size and mine distribution percentage
         """
         rows, cols = self.controller.get_grid_dims()
         gridsize = rows * cols
         dist = MINE_DISTRIBUTION[self.controller.get_setting('difficulty')]
-        num_mines = np.floor(dist * gridsize)
+        num_mines = math.floor(dist * gridsize)
 
         self.num_mines = num_mines
 
     def get_gameboard(self):
-        if self.board is None:
-            self.set_gameboard()
+        if self.gameboard is None:
+            self.create_gameboard()
 
-        return self.board
+        return self.gameboard
 
-    def set_gameboard(self):
-        board = []
+    def create_gameboard(self):
+        gameboard = []
         grid_rows, grid_cols = self.controller.get_grid_dims()
 
         # Loop over every cell and make a new container, tile, and clue based
         # on the given grid size
         for row in range(grid_rows):
-            board.append([])
+            gameboard.append([])
             for col in range(grid_cols):
-                board[row].append({
+                gameboard[row].append({
                     'clue': None,   # Value is one of None, int, or 'mine'
                     'is_revealed': False, 
                     'is_flagged': False,
                     'coords': [row, col]
                 })
 
-        self.board = board
+        self.gameboard = gameboard
         self.place_mines()
         self.place_clues()
 
@@ -91,22 +91,25 @@ class GameData:
         Calculates mine hints arround mines. Modifies `grid_data` in place.
         """
 
-        mines = [cell for row in self.gameboard for cell in row if cell['clue'] == 'mine']
-        for m in mines:
-            self.calc_clues(m)
+        for row in self.gameboard:
+            for cell in row:
+                if cell['clue'] == 'mine':
+                    self.calc_clues(cell)
 
     def calc_clues(self, mine):
         for coord in CLUE_COORDS:
-            clue_row = mine['coord'][0] + coord[0]
-            clue_col = mine['coord'][1] + coord[1]
+            clue_row = mine['coords'][0] + coord[0]
+            clue_col = mine['coords'][1] + coord[1]
 
+            if clue_row < 0 or clue_col < 0:
+                continue
             try:
-                neighbor_clue = self.gameboard[clue_row][clue_col]['clue']
+                neighbor_clue = self.gameboard[clue_row][clue_col]
             except IndexError:  # If the above goes out of row or col range (i.e. -1 or > length)
                 continue
 
-            if neighbor_clue is None:
+            if neighbor_clue['clue'] is None:
                 neighbor_clue['clue'] = 1
-            elif neighbor_clue != 'mine':
-                neighbor_clue += 1
+            elif neighbor_clue['clue'] != 'mine':
+                neighbor_clue['clue'] += 1
 

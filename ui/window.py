@@ -1,7 +1,8 @@
-from tkinter import Tk
+from tkinter import Tk, HORIZONTAL
 from tkinter import ttk
-from . import grid, menus
+from . import grid, menus, modals, sprite
 from .colors import COLORS
+from ui import colors
 
 QUICK_REVEAL_LABELS = ["Off", "Single-Click", "Double-Click"]
 
@@ -17,23 +18,29 @@ class GameWin():
 
         # The board is created separately so that it can be refreshed between games
         self.board = None
+        self.board_widgets = None
         self.info_grid = None
         self.info_reveal = None
-        self.options_menu = None
+        self.menus = None
+        self.gameover_alert = None
 
+        self.style = None
+
+    def make_window(self):
         self.make_style()
         self.make_menus()
         self.make_topbar()
-        self.make_gameboard()
         self.make_deco()
         self.make_infobar()
+        self.make_gameover_alert()
+
         self.update_infobar()
 
         self.root.resizable(False, False)
 
         # Some keyboard shortcuts
-        self.root.bind('<Control-n>', lambda e: self.controller.reset_game())
-        self.root.bind('<Control-g>', lambda e: self.controller.change_grid_size())
+        self.root.bind('<Control-n>', lambda e: self.controller.new_game())
+        self.root.bind('<Control-g>', lambda e: self.show_gridsize_modal())
         
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(1, weight=1)
@@ -43,6 +50,25 @@ class GameWin():
         quick_reveal_label = QUICK_REVEAL_LABELS[self.controller.get_setting('quick_reveal')]
         self.info_reveal.config(text=f'Quick Reveal: {quick_reveal_label}')
     
+    def update_grid(self):
+        gameboard = self.controller.get_gameboard()
+        for row in gameboard:
+            for cell in row:
+                widget = self.board_widgets[cell['coords'][0]][cell['coords'][1]]
+                if widget[2] is True:
+                    continue
+                if cell['is_revealed']:
+                    widget[0].grid_forget()
+                    widget[1].grid(row=0, column=0, sticky="NSEW") 
+                    widget[2] = True
+                    continue
+
+            text = widget[0].configure('text')
+            if cell['is_flagged'] and text != "X":
+                widget[0].configure(text="X")
+            if not cell['is_flagged'] and text == "X":
+                widget[0].configure(text="")
+
     def make_style(self):
         """
         Initialize the ttke style for the app
@@ -50,15 +76,18 @@ class GameWin():
         style = ttk.Style(self.root)
         style.theme_use('default')
 
+        self.style = style
+        self.stylize('dark')
+
     def make_menus(self):
-        self.options_menu = menus.make_options_menu(self.root, self.controller)
+        self.menus = menus.make_options_menus(self)
 
     def make_topbar(self):
         top_bar = ttk.Frame(self.root)
         reset = ttk.Button(
             top_bar,
             text="BombSniffer",
-            command=self.controller.reset_game
+            command=self.controller.new_game
         )
         timer = ttk.Label(top_bar)
 
@@ -68,7 +97,7 @@ class GameWin():
 
         top_bar.columnconfigure(1, weight=1)
         top_bar.rowconfigure(0, weight=1)
-        top_bar.bind('<3>', lambda e: self.controller.show_options_menu(e))
+        top_bar.bind('<3>', lambda e: self.post_options_menu(e))
 
         timer['text'] = "00:00"
 
@@ -81,13 +110,13 @@ class GameWin():
         if self.board is not None and type(self.board) is ttk.Frame:
             self.board.destroy()
 
+        mine_sprite = sprite.get_sprite(self.controller.get_setting("cell_size"))
         board_frame, board_widgets = grid.make_gameboard(
-            self.controller.get_gameboard_data(), 
-            self.controller.get_grid_dims(), 
-            self.controller.get_num_mines()
+            self.controller.get_gameboard(),
+            self,
+            mine_sprite
         )
         # Set the parent so the board has some place to go
-        board_frame.configure(parent=self.root)
         board_frame.grid(
             column=0, 
             row=1, 
@@ -96,13 +125,14 @@ class GameWin():
             sticky='NSEW'
         )
 
-        self.board = board_widgets
+        self.board = board_frame
+        self.board_widgets = board_widgets
 
     def make_deco(self):
         """
         Create the line separator between the board and the infobar
         """
-        sep = ttk.Separator(self.root, orient='HORIZONTAL')
+        sep = ttk.Separator(self.root, orient=HORIZONTAL)
         sep.grid(column=0, row=2, sticky='EW')
 
     def make_infobar(self):
@@ -121,9 +151,9 @@ class GameWin():
 
         # Ability to click on the info text to change the settings related
         # to the text labels
-        info_grid.bind('<1>', lambda e: self.controller.change_grid_size())
-        info_reveal.bind('<1>', lambda e: self.controller.options_auto_flag.post(e.x_root, e.y_root))
-        info_reveal.bind('<3>', lambda e: self.controller.options_auto_flag.post(e.x_root, e.y_root))
+        info_grid.bind('<1>', lambda e: self.show_gridsize_modal())
+        info_reveal.bind('<1>', lambda e: self.post_quick_reveal(e))
+        info_reveal.bind('<3>', lambda e: self.post_quick_reveal(e))
 
         info.configure(style='info.TLabel')
         info_grid.configure(style='info.TLabel')
@@ -132,36 +162,60 @@ class GameWin():
         self.info_grid = info_grid
         self.info_reveal = info_reveal
 
-    def stylize(self, style):
+    def stylize(self, theme):
         """
         Change the game's colors
         """
-        style.configure(
+        self.style.configure(
             'TFrame', 
-            background=COLORS[style]['color2']
+            background=COLORS[theme]['color2']
         )
-        style.configure(
+        self.style.configure(
             'TLabel', 
-            background=COLORS[style]['color3'],
-            foreground=COLORS[style]['text1']
+            background=COLORS[theme]['color3'],
+            foreground=COLORS[theme]['text1']
         )
-        style.configure(
+        self.style.configure(
             'timer.TLabel', 
-            background=COLORS[style]['color2'],
-            foreground=COLORS[style]['text2'], 
+            background=COLORS[theme]['color2'],
+            foreground=COLORS[theme]['text2'], 
             font='Courier'
         )
-        style.configure('TButton',
-            background=COLORS[style]['color1'],
-            foreground=COLORS[style]['text1']
+        self.style.configure('TButton',
+            background=COLORS[theme]['color1'],
+            foreground=COLORS[theme]['text1']
         )
-        style.configure('info.TLabel', 
-            background=COLORS[style]['color2'],
-            foreground=COLORS[style]['text2']
+        self.style.configure('info.TLabel', 
+            background=COLORS[theme]['color2'],
+            foreground=COLORS[theme]['text2']
         )
+        # self.style.configure('clue.TLabel',
+        #     height=self.controller.get_setting("cell_size"),
+        #     width=self.controller.get_setting("cell_size")
+        # )
+        # self.style.configure('tile.TLabel',
+        #     height=self.controller.get_setting("cell_size"),
+        #     width=5
+        # )
 
-        self.root.configure(background=COLORS[style]['color2'])
+        self.root.configure(background=COLORS[theme]['color2'])
         self.root.update()
 
     def post_options_menu(self, e):
-        self.options_menu.post(e.x_root, e.y_root)
+        self.menus["top"].post(e.x_root, e.y_root)
+
+    def post_quick_reveal(self, e):
+        self.menus["quick_reveal"].post(e.x_root, e.y_root)
+
+    def make_gameover_alert(self):
+        self.gameover_alert = ttk.Label(self.root)
+    
+    def show_gameover_alert(self, text):
+        self.gameover_alert.configure(text=text)
+        self.gameover_alert.grid(row=1, column=0)
+
+    def hide_gameover_alert(self):
+        self.gameover_alert.grid_remove()
+
+    def show_gridsize_modal(self):
+        modals.make_gridsize_modal(self.root, self.controller)

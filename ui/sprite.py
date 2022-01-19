@@ -1,9 +1,9 @@
 from PIL import Image, ImageTk
-from os.path import normpath
+import os
 
-def get_sprite(controller):
-    cell_size = controller.get_setting('cell_size')
-    sprite = Image.open(normpath('../lib/sprite.png'))
+def get_sprite(cell_size):
+    path = os.path.abspath('./ui/minesprite.png')
+    sprite = Image.open(path)
     sprite = sprite.resize((cell_size, cell_size))
     mine_sprite = ImageTk.PhotoImage(sprite)
 

@@ -1,0 +1,26 @@
+{
+    "WIN": [
+        "Chicken dinner!",
+        "You won!",
+        "All mines swept!",
+        "All your mines are belong to me.",
+        "By golly, you did it!",
+        "Good job not blowing up",
+        "You cut the right wires, good job!",
+        "Amazing!",
+        "Totally tubular!",
+        "Ya did it matey"
+    ],
+    "LOSE": [
+        "Oof...",
+        "You lost.",
+        "You blew up!",
+        "So close... kinda",
+        "You cut the wrong wire",
+        "Oh well...",
+        "Yikes! That sucks.",
+        "Tee hee",
+        "Better luck next time!",
+        "You died."
+    ]
+}

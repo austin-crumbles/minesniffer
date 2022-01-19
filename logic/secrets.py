@@ -1,4 +1,5 @@
-from . import gamestate, CLUE_COORDS
+from . import gamestate
+from .coords import CLUE_COORDS
 
 def reveal(gameboard, row, col) -> str:
     """
@@ -7,22 +8,26 @@ def reveal(gameboard, row, col) -> str:
     Returns a lib.gamestate string
     """
     cell = gameboard[row][col]
-
+    print(f"[scrects::reveal] Removing {row},{col}")
     if cell['is_flagged'] is True:      # If the tile is flagged
         return gamestate.CONTINUE
     if cell['is_revealed'] is True:     # Skip everything if the box is already revealed
         return gamestate.CONTINUE
-    if cell['clue'] == 'mine':          # If cell is a mine, end the game
-        return gamestate.LOSE
 
     cell['is_revealed'] = True
 
-    if cell['clue'] is not None:        # If the clue is not blank, only reveal that clue
+    if cell['clue'] is not None and cell['clue'] != 'mine': # If the clue is not blank, only reveal that clue
         return gamestate.CONTINUE
+    if cell['clue'] == 'mine':                              # If cell is a mine, end the game
+        return gamestate.LOSE
 
     for c in CLUE_COORDS:
-        remove_col = cell['coord'][0] + c[0]
-        remove_row = cell['coord'][1] + c[1]
+        remove_col = cell['coords'][0] + c[0]       # Clamps lower bound to 0. Upper bound caught by try / except
+        remove_row = cell['coords'][1] + c[1]
+
+        if remove_row < 0 or remove_col < 0:
+            continue
+
         try:
             state = reveal(gameboard, remove_row, remove_col)
         except IndexError:
@@ -34,8 +39,9 @@ def reveal(gameboard, row, col) -> str:
     return check_win_condition(gameboard)
 
 def reveal_all(gameboard):
-    for cell in [row for row in gameboard]:
-        cell['is_revealed'] = True
+    for row in gameboard:
+        for cell in row:
+            cell['is_revealed'] = True
     
 def check_win_condition(gameboard) -> str:
     """
@@ -46,14 +52,15 @@ def check_win_condition(gameboard) -> str:
     Returns a lib.gamestate string
     """
     num_boxes_left = 0
-    num_flags = 0
-    for cell in [row for row in gameboard]:
-        if cell['is_revealed'] is False:
-            num_boxes_left += 1
-        elif cell['is_flagged'] is True:
-            num_flags += 1
+    num_mines = 0
+    for row in gameboard:
+        for cell in row:
+            if cell['is_revealed'] is False:
+                num_boxes_left += 1
+            elif cell['clue'] == 'mine':
+                num_mines += 1
     
-    if num_boxes_left == num_flags:
+    if num_boxes_left == num_mines:
         return gamestate.WIN
     else:
         return gamestate.CONTINUE

@@ -1,11 +1,12 @@
 from tkinter import Menu
 
-def make_options_menu(root, controller):
+def make_options_menus(parent):
     """
     Create the options menu list, used for both the top menu bar
     and context menu.
     """
-    options_bar = make_menubar(root)
+    controller = parent.controller
+    options_bar = make_menubar(parent.root)
 
     options_menu = Menu(options_bar)
     options_quick_reveal = Menu(options_menu)
@@ -22,7 +23,7 @@ def make_options_menu(root, controller):
     # ===========================================
     options_menu.add_command(
         label="New Game", 
-        command=controller.reset_game, 
+        command=controller.new_game, 
         accelerator="Ctrl+N"
     )
     options_menu.add_separator()
@@ -32,7 +33,7 @@ def make_options_menu(root, controller):
     )
     options_menu.add_command(
         label="Grid size...", 
-        command=controller.change_grid_size, 
+        command=parent.show_gridsize_modal, 
         accelerator="Ctrl+G"
     )
     options_menu.add_cascade(
@@ -55,19 +56,19 @@ def make_options_menu(root, controller):
         label="Double click", 
         variable=controller.settings['quick_reveal'], 
         value=2, 
-        command=lambda: controller.update_infobar()
+        command=lambda: parent.update_infobar()
     )
     options_quick_reveal.add_radiobutton(
         label="Single click", 
         variable=controller.settings['quick_reveal'], 
         value=1, 
-        command=lambda: controller.update_infobar()
+        command=lambda: parent.update_infobar()
     )
     options_quick_reveal.add_radiobutton(
         label="Off", 
         variable=controller.settings['quick_reveal'], 
         value=0, 
-        command=lambda: controller.update_infobar()
+        command=lambda: parent.update_infobar()
     )
 
     # ======================================
@@ -77,25 +78,25 @@ def make_options_menu(root, controller):
         label="Easy", 
         variable=controller.settings['difficulty'], 
         value="Easy",  
-        command=lambda: controller.update_infobar()
+        command=lambda: parent.update_infobar()
     )
     options_difficulty.add_radiobutton(
         label="Normal", 
         variable=controller.settings['difficulty'], 
         value="Normal", 
-        command=lambda: controller.update_infobar()
+        command=lambda: parent.update_infobar()
     )
     options_difficulty.add_radiobutton(
         label="Hard", 
         variable=controller.settings['difficulty'], 
         value="Hard", 
-        command=lambda: controller.update_infobar()
+        command=lambda: parent.update_infobar()
     )
     options_difficulty.add_radiobutton(
         label="Deadly", 
         variable=controller.settings['difficulty'], 
         value="Deadly", 
-        command=lambda: controller.update_infobar()
+        command=lambda: parent.update_infobar()
     )
 
     # =================================
@@ -105,34 +106,39 @@ def make_options_menu(root, controller):
         label="Light", 
         variable=controller.settings['game_theme'], 
         value='light', 
-        command=lambda: controller.stylize('light')
+        command=lambda: parent.stylize('light')
     )
     options_theme.add_radiobutton(
         label="Dark", 
         variable=controller.settings['game_theme'], 
         value='dark', 
-        command=lambda: controller.stylize('dark')
+        command=lambda: parent.stylize('dark')
     )
     options_theme.add_radiobutton(
         label="Dark red", 
         variable=controller.settings['game_theme'], 
         value='dark_red', 
-        command=lambda: controller.stylize('dark_red')
+        command=lambda: parent.stylize('dark_red')
     )
     options_theme.add_radiobutton(
         label="Dark blue", 
         variable=controller.settings['game_theme'], 
         value='dark_blue', 
-        command=lambda: controller.stylize('dark_blue')
+        command=lambda: parent.stylize('dark_blue')
     )
     options_theme.add_radiobutton(
         label="Ugly", 
         variable=controller.settings['game_theme'], 
         value='test', 
-        command=lambda: controller.stylize('test')
+        command=lambda: parent.stylize('test')
     )
 
-    return options_menu
+    return {
+        "top": options_menu, 
+        "difficulty": options_difficulty, 
+        "quick_reveal": options_quick_reveal,
+        "theme": options_theme
+    }
 
 def make_menubar(root):
     """

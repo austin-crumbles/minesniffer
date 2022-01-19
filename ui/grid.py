@@ -1,6 +1,5 @@
 from tkinter import ttk
 from .colors import COLORS
-from . import sprite
 
 def make_container(root, controller, coords) -> ttk.Frame:
     """
@@ -16,13 +15,15 @@ def make_container(root, controller, coords) -> ttk.Frame:
         width=controller.get_setting('cell_size'), 
         height=controller.get_setting('cell_size'), 
         borderwidth=0, 
-        relief='solid', 
-        background=COLORS[controller.get_setting('theme')]['color3']
+        relief='solid'
+        # background=COLORS[controller.get_setting('game_theme')]['color3']
     )
     container.grid(row=row, column=col)
     container.grid_propagate(0)
     container.columnconfigure(0, weight=1)
     container.rowconfigure(0, weight=1)
+
+    return container
 
 def make_tile(root, controller, coords) -> ttk.Button:
     """
@@ -31,9 +32,9 @@ def make_tile(root, controller, coords) -> ttk.Button:
     row, col = coords
     tile = ttk.Button(root)
     tile.configure(
-        width=controller.get_setting('cell_size'), 
-        height=controller.get_setting('cell_size'),
-        style='grid.TButton', 
+        # width=controller.get_setting('cell_size'), 
+        # height=controller.get_setting('cell_size'),
+        style='tile.TButton', 
         command=(lambda lamb_row=row, lamb_col=col: controller.reveal(lamb_row, lamb_col))
     )
     # Grid commented out -- it'll get gridded later
@@ -55,8 +56,9 @@ def make_clue(root, controller, coords) -> ttk.Label:
     clue.configure(
         anchor='center', 
         text="",
-        width=controller.get_setting('cell_size'), 
-        height=controller.get_setting('cell_size')
+        style='clue.TLabel'
+        # width=controller.get_setting('cell_size'), 
+        # height=controller.get_setting('cell_size')
     )
     # Grid commented out -- it'll get gridded later
     # grid_clue.grid(row=0, column=0, sticky='NSEW')
@@ -74,25 +76,30 @@ def make_clue(root, controller, coords) -> ttk.Label:
 
     return clue
 
-def make_gameboard(gameboard_data):
+def make_gameboard(gameboard_data, parent, sprite):
     main = ttk.Frame(
         borderwidth=3,
         relief='sunken'
     )
+    controller = parent.controller
     widgets = []    # Keeping track of all the widgets on the board
 
     for row in gameboard_data:
         widget_container = []
         for cell in row:
-            tile = make_tile(main, cell['coords'])
-            clue = make_clue(main, cell['coords'])
-            if cell['clue'] not in [None, 'mine']:
+            container = make_container(main, controller, cell['coords'])
+            tile = make_tile(container, controller, cell['coords'])
+            clue = make_clue(container, controller, cell['coords'])
+            if cell['clue'] is None:                                        # !!!!! Change back to `not in [None, 'mine']`
+                clue.configure(text=" ")
+            elif cell['clue'] != 'mine':
                 clue.configure(text=cell['clue'])
             elif cell['clue'] == 'mine':
-                tile.configure(image=sprite.get_sprite())
-
-            widget_container = [tile, clue]
-            tile.grid(row=cell['coords'][0], column=cell['coords'][1])
+                clue.configure(image=sprite)
+            
+            container.grid(row=cell['coords'][0], column=cell['coords'][1])     # Container grids to the coords, while
+            tile.grid(row=0, column=0, sticky="NSEW")                           # the inner elems grid to 0, 0
+            widget_container.append([tile, clue, False])      # Bool used to keep track of if the tile has been removed
 
         widgets.append(widget_container)
 

@@ -1,7 +1,6 @@
 from tkinter import Toplevel, Frame, Label, Scale, Button, HORIZONTAL, FALSE
-from ..lib import settings
 
-def change_grid_size(root):
+def make_gridsize_modal(root, controller):
     gsdiag = Toplevel(root)
     gsframe = Frame(gsdiag)
     gstext = Label(
@@ -12,7 +11,7 @@ def change_grid_size(root):
         gsframe,
         orient=HORIZONTAL,
         length=200,
-        variable=settings.grid_width, 
+        variable=controller.settings['grid_width'], 
         from_=10, 
         to=40
     )
@@ -20,7 +19,7 @@ def change_grid_size(root):
         gsframe, 
         orient=HORIZONTAL,
         length=200, 
-        variable=settings.grid_height, 
+        variable=controller.settings['grid_height'], 
         from_=10, 
         to=40
     )

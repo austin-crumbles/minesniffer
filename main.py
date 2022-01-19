@@ -1,5 +1,7 @@
 """Go sniff for some mines"""
 import json
+import random
+from os import stat
 from tkinter import StringVar, IntVar
 from ui.window import GameWin
 from logic.gamedata import GameData
@@ -8,10 +10,14 @@ from logic import secrets, gamestate
 class Gameapp():
     def __init__(self):
         self.settings: dict = None
-        self.data = GameData()
-        self.window = GameWin(self)
+        self.data: GameData = None
+        self.window: GameWin = None
 
+        self.window = GameWin(self)     # Have to get the Tk root element started before we can load the settings
         self.read_settings()
+        self.data = GameData(self)
+        self.window.make_window()       # Have to wait for settings to load before we can finish making
+                                        # the rest of the window
         self.new_game()
 
     def read_settings(self):
@@ -29,105 +35,98 @@ class Gameapp():
                 settings[s] = StringVar(value=json_dict[s]['value'])
                 continue
             else:
-                settings[s] = json_dict[s]
+                settings[s] = json_dict[s]['value']
 
         self.settings = settings
 
     def get_setting(self, setting):
         if type(self.settings[setting]) in [StringVar, IntVar]:
-            return self.settings[setting].get_value()
+            return self.settings[setting].get()
         else:
             return self.settings[setting]
 
     def new_game(self):
         self.data.new_game()
+        self.window.make_gameboard()
 
     def get_grid_dims(self):
-        rows = self.settings['grid_height'].get_value()
-        cols = self.settings['grid_width'].get_value()
+        rows = self.get_setting('grid_height')
+        cols = self.get_setting('grid_width')
         return (rows, cols)
 
-    def get_gameboard_data(self):
+    def get_num_mines(self):
+        return self.data.get_num_mines()
+
+    def get_gameboard(self):
         return self.data.get_gameboard()
 
     def quick_reveal(self, row, col, num_clicks):
+        if self.data.game_state in [gamestate.LOSE, gamestate.WIN]:
+            return
+    
         if num_clicks != self.settings['quick_reveal'].get_value():
             return
 
         state = secrets.quick_reveal(self.data.get_gameboard(), row, col)
-        self.data.game_state = state
-        if state == gamestate.LOSE:
-            self.gameover_lose()
-        elif state == gamestate.WIN:
-            self.gameover_win()
 
-        self.update_window()
+        self.update_state(state)
+        self.window.update_grid()
 
     def flag(self, row, col):
+        if self.data.game_state in [gamestate.LOSE, gamestate.WIN]:
+            return
         secrets.flag(self.data.get_gameboard(), row, col)
-        self.update_window()
+        self.window.update_grid()
 
     def reveal(self, row, col):
-        secrets.reveal(self.data.get_gameboard(), row, col)
-        self.update_window()
+        if self.data.game_state in [gamestate.LOSE, gamestate.WIN]:
+            return
+        state = secrets.reveal(self.data.get_gameboard(), row, col)
+        self.update_state(state)
+        self.window.update_grid()
+
+    def update_state(self, state):
+        # self.text_board()
+        self.data.game_state = state
+        if state in [gamestate.WIN, gamestate.LOSE]:
+            self.gameover()
+
+    def text_board(self):
+        b = []
+        for row in self.get_gameboard():
+            r = []
+            for cell in row:
+                r.append(cell['clue'])
+            b.append(r)
+        for r in b:
+            print(r)
 
     def update_infobar(self):
         self.window.update_infobar()
 
-    def quit_game():
-        pass
+    def gameover(self):
+        text = self.get_random_text(self.data.game_state)
+        self.window.show_gameover_alert(text)
+        print("Game over!", text)
+        if self.data.game_state == gamestate.LOSE:
+            secrets.reveal_all(self.get_gameboard())
 
-    def change_gridsize():
-        pass
+    @staticmethod
+    def get_random_text(section):
+        with open('phrases.json', 'r') as f:
+            phrases = json.load(f)
 
-    def show_options_menu(e):
-        options_menu.post(e.x_root, e.y_root)
+        return random.choice(phrases[section])
 
-    def game_over(e):
-        settings.gameover = True
-
-        if e == 0:
-            g_over_alert['text'] = "Game Over!"
-        elif e == 1:
-            g_over_alert['text'] = "Chicken dinner!"
-
-        g_over_alert.grid(column=0, row=1)
-
-    def set_info_display(var):    # Formerly called "set_info_var"
-        """Set variables for info bar
-
-        Use 'gs' for grid size. Use 'ar' for auto reveal.
-        Use 'd' for difficulty.
-        """
-        if var == 'gs':
-            format_info_gridsize()
-        if var == 'ar':
-            format_info_quickreveal()
-        if var == 'd':
-            format_info_difficulty()
-
-    def format_info_gridsize(self):
-        info_grid['text'] = info_vars['gs'].format(grid_size[0], grid_size[1])
-
-    def format_info_quickreveal(self):
-        n = self.quick_reveal.get()
-        if n == 0:
-            t = info_vars['ar'].format("Off")
-        elif n == 1:
-            t = info_vars['ar'].format("Single click")
-        elif n == 2:
-            t = info_vars['ar'].format("Double click")
-        info_reveal['text'] = t
-
-    def format_info_difficulty(self):
-        difficulty['lvl'] = difficulty_var.get()
+    def quit_game(self):
+        self.window.root.destroy()
 
     def run(self):
         self.window.root.mainloop()
 
 def main():
     game = Gameapp()
-    game.new_game()
+    # print([m for row in game.get_gameboard() for m in row if m['clue'] is not None])
 
     game.run()
 
