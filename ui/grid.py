@@ -67,11 +67,11 @@ def make_clue(root, controller, coords) -> ttk.Label:
     # the user can change quick reveal settings during a game in progress
     clue.bind(
         '<Button-1>', 
-        (lambda e, lamb_row=row, lamb_col=col: controller.quick_reveal(e, lamb_row, lamb_col, 1))
+        (lambda e, lamb_row=row, lamb_col=col: controller.quick_reveal(lamb_row, lamb_col, 1))
     )
     clue.bind(
         '<Double-Button-1>', 
-        (lambda e, lamb_row=row, lamb_col=col: controller.quick_reveal(e, lamb_row, lamb_col, 2))
+        (lambda e, lamb_row=row, lamb_col=col: controller.quick_reveal(lamb_row, lamb_col, 2))
     )
 
     return clue
@@ -90,11 +90,10 @@ def make_gameboard(gameboard_data, parent, sprite):
             container = make_container(main, controller, cell['coords'])
             tile = make_tile(container, controller, cell['coords'])
             clue = make_clue(container, controller, cell['coords'])
-            if cell['clue'] is None:                                        # !!!!! Change back to `not in [None, 'mine']`
-                clue.configure(text=" ")
-            elif cell['clue'] != 'mine':
+            if cell['clue'] != 'mine':
                 clue.configure(text=cell['clue'])
             elif cell['clue'] == 'mine':
+                clue.configure(text="M")
                 clue.configure(image=sprite)
             
             container.grid(row=cell['coords'][0], column=cell['coords'][1])     # Container grids to the coords, while

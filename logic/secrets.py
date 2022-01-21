@@ -1,69 +1,80 @@
-from . import gamestate
+from .gamestate import GameState
 from .coords import CLUE_COORDS
 
-def reveal(gameboard, row, col) -> str:
+def reveal(gameboard, row, col, tiles_left=None, mines=None) -> str:
     """
     Recursively reveals tiles and their neighbors.
 
-    Returns a lib.gamestate string
+    Returns a lib.GameState string
     """
     cell = gameboard[row][col]
-    print(f"[scrects::reveal] Removing {row},{col}")
-    if cell['is_flagged'] is True:      # If the tile is flagged
-        return gamestate.CONTINUE
-    if cell['is_revealed'] is True:     # Skip everything if the box is already revealed
-        return gamestate.CONTINUE
+
+    # On the Zeroth recursion, calculate number of tiles and mines.
+    # On successive recusrions, just return the number back.
+    tiles_left, mines = get_tiles_and_mines(gameboard, tiles_left, mines)
+
+    if cell['is_flagged'] is True or cell['is_revealed'] is True:
+        return GameState.CONTINUE
 
     cell['is_revealed'] = True
+    tiles_left -= 1
 
-    if cell['clue'] is not None and cell['clue'] != 'mine': # If the clue is not blank, only reveal that clue
-        return gamestate.CONTINUE
     if cell['clue'] == 'mine':                              # If cell is a mine, end the game
-        return gamestate.LOSE
+        return GameState.LOSE
+    if cell['clue'] is not None:                            # If the clue is not blank, only reveal that clue
+        return check_win_condition(tiles_left, mines)
 
     for c in CLUE_COORDS:
-        remove_col = cell['coords'][0] + c[0]       # Clamps lower bound to 0. Upper bound caught by try / except
-        remove_row = cell['coords'][1] + c[1]
+        remove_row = cell['coords'][0] + c[0]              # Clamps lower bound to 0. Upper bound caught by try / except
+        remove_col = cell['coords'][1] + c[1]
 
         if remove_row < 0 or remove_col < 0:
             continue
-
+        
+        # Make sure the value does not exceed the grid length
         try:
-            state = reveal(gameboard, remove_row, remove_col)
+            state = reveal(gameboard, remove_row, remove_col, tiles_left, mines)
         except IndexError:
             continue
     
-        if state in [gamestate.LOSE, gamestate.WIN]:
+        if state in [GameState.LOSE, GameState.WIN]:
             return state
 
-    return check_win_condition(gameboard)
+def check_win_condition(tiles_left, mines):
+    print(f"[secrets::reveal] Checking win condition... {tiles_left=}, {mines=}")
+    if tiles_left == mines:
+        return GameState.WIN
+    else:
+        return GameState.CONTINUE
 
 def reveal_all(gameboard):
     for row in gameboard:
         for cell in row:
             cell['is_revealed'] = True
-    
-def check_win_condition(gameboard) -> str:
-    """
-    Check the number of boxes left against the number of flaggs placed.
 
-    If the numbers are equal, then the player has won.
-
-    Returns a lib.gamestate string
+def get_tiles_and_mines(gameboard, tiles_left, mines) -> int:
     """
-    num_boxes_left = 0
-    num_mines = 0
+    Returns the number of mines and tiles remianing.
+
+    `tiles_left` and `mines` is not None, just return those values.
+    Otherwise calculate their values. (This should only calculate values 
+    once per reveal cycle.)
+    """
+    if tiles_left is not None and mines is not None:
+        return tiles_left, mines
+
+    calc_tiles_left = tiles_left or 0
+    calc_mines = mines or 0
+
     for row in gameboard:
         for cell in row:
-            if cell['is_revealed'] is False:
-                num_boxes_left += 1
-            elif cell['clue'] == 'mine':
-                num_mines += 1
-    
-    if num_boxes_left == num_mines:
-        return gamestate.WIN
-    else:
-        return gamestate.CONTINUE
+            # Only increment the value if it actually needs to be calculated
+            if cell['is_revealed'] is False and tiles_left is None:
+                calc_tiles_left += 1
+            if cell['clue'] == 'mine' and mines is None:
+                calc_mines += 1
+
+    return calc_tiles_left, calc_mines  
 
 def quick_reveal(gameboard, row, col) -> str:
     """
@@ -90,14 +101,14 @@ def quick_reveal(gameboard, row, col) -> str:
         return
 
     # Reveal the neighboring cells if they are not flagged, and return a winning
-    # or losing gamestate. Otherwise, return CONTINUE
+    # or losing GameState. Otherwise, return CONTINUE
     unflagged_neighbors = [n for n in neighbors if n['is_flagged'] is False]
     for neighbor in unflagged_neighbors:
         state = reveal(gameboard, *neighbor['coords'])
-        if state in [gamestate.LOSE, gamestate.WIN]:
+        if state in [GameState.LOSE, GameState.WIN]:
             return state
 
-    return gamestate.CONTINUE
+    return GameState.CONTINUE
 
 def get_neighbor_cells(gameboard, row, col):
     cell = gameboard[row][col]
@@ -105,6 +116,9 @@ def get_neighbor_cells(gameboard, row, col):
     for coords in CLUE_COORDS:
         neighbor_row = coords[0] + cell['coords'][0]
         neighbor_col = coords[1] + cell['coords'][1]
+
+        if neighbor_row < 0 or neighbor_col < 0:
+            continue
 
         try:
             neighbor_cell = gameboard[neighbor_row][neighbor_col]

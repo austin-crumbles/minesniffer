@@ -152,8 +152,8 @@ class GameWin():
         # Ability to click on the info text to change the settings related
         # to the text labels
         info_grid.bind('<1>', lambda e: self.show_gridsize_modal())
-        info_reveal.bind('<1>', lambda e: self.post_quick_reveal(e))
-        info_reveal.bind('<3>', lambda e: self.post_quick_reveal(e))
+        info_reveal.bind('<1>', lambda e: self.post_quick_reveal_menu(e))
+        info_reveal.bind('<3>', lambda e: self.post_quick_reveal_menu(e))
 
         info.configure(style='info.TLabel')
         info_grid.configure(style='info.TLabel')
@@ -204,7 +204,7 @@ class GameWin():
     def post_options_menu(self, e):
         self.menus["top"].post(e.x_root, e.y_root)
 
-    def post_quick_reveal(self, e):
+    def post_quick_reveal_menu(self, e):
         self.menus["quick_reveal"].post(e.x_root, e.y_root)
 
     def make_gameover_alert(self):

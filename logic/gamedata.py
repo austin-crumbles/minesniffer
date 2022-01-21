@@ -1,6 +1,7 @@
 import math
 from random import randint
-from . import gamestate
+from tkinter.constants import N
+from .gamestate import GameState
 from .coords import CLUE_COORDS
 from .timer import GameTimer
 
@@ -16,6 +17,7 @@ class GameData:
         self.controller = controller
         self.gameboard = None
         self.num_mines = None
+        self.num_boxes_left = None
         self.timer = None
         self.game_state = None
     
@@ -23,20 +25,23 @@ class GameData:
         """
         Reset all values to beginning-of-game state
         """
-        self.create_gameboard()
+        self.set_gameboard()
         self.timer = GameTimer()
-        self.game_state = gamestate.IDLE
+        self.game_state = GameState.IDLE
 
     def get_num_mines(self):
         if self.num_mines is None:
-            self.calc_num_mines()
+            self.set_num_mines()
         
         return self.num_mines
 
-    def calc_num_mines(self):
+    def set_num_mines(self, n=None):
         """
         Calculate number of mines based on the grid size and mine distribution percentage
         """
+        if n is not None:
+            self.num_mines = n
+
         rows, cols = self.controller.get_grid_dims()
         gridsize = rows * cols
         dist = MINE_DISTRIBUTION[self.controller.get_setting('difficulty')]
@@ -46,11 +51,11 @@ class GameData:
 
     def get_gameboard(self):
         if self.gameboard is None:
-            self.create_gameboard()
+            self.set_gameboard()
 
         return self.gameboard
 
-    def create_gameboard(self):
+    def set_gameboard(self):
         gameboard = []
         grid_rows, grid_cols = self.controller.get_grid_dims()
 
@@ -112,4 +117,3 @@ class GameData:
                 neighbor_clue['clue'] = 1
             elif neighbor_clue['clue'] != 'mine':
                 neighbor_clue['clue'] += 1
-
