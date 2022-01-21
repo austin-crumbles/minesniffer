@@ -17,7 +17,6 @@ class GameData:
         self.controller = controller
         self.gameboard = None
         self.num_mines = None
-        self.num_boxes_left = None
         self.timer = None
         self.game_state = None
     
@@ -25,14 +24,12 @@ class GameData:
         """
         Reset all values to beginning-of-game state
         """
+        self.set_num_mines()
         self.set_gameboard()
         self.timer = GameTimer()
         self.game_state = GameState.IDLE
 
     def get_num_mines(self):
-        if self.num_mines is None:
-            self.set_num_mines()
-        
         return self.num_mines
 
     def set_num_mines(self, n=None):
@@ -49,10 +46,11 @@ class GameData:
 
         self.num_mines = num_mines
 
-    def get_gameboard(self):
-        if self.gameboard is None:
-            self.set_gameboard()
+    def get_num_remaining_cells(self) -> int:
+        cells = [cell for row in self.gameboard for cell in row if cell['is_revealed'] is False]
+        return len(cells)
 
+    def get_gameboard(self):
         return self.gameboard
 
     def set_gameboard(self):
@@ -117,3 +115,11 @@ class GameData:
                 neighbor_clue['clue'] = 1
             elif neighbor_clue['clue'] != 'mine':
                 neighbor_clue['clue'] += 1
+
+    def check_win_condition(self):
+        remaining_cells = self.get_num_remaining_cells()
+
+        if remaining_cells == self.get_num_mines():
+            return GameState.WIN
+        else:
+            return GameState.CONTINUE

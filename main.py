@@ -1,12 +1,14 @@
 """Go sniff for some mines"""
 import json
 import random
+import logging
 from os import stat
 from tkinter import StringVar, IntVar
 from ui.window import GameWin
 from logic.gamedata import GameData
 from logic import secrets, GameState
 
+logging.basicConfig()
 class Gameapp():
     def __init__(self):
         self.settings: dict = None
@@ -46,9 +48,10 @@ class Gameapp():
             return self.settings[setting]
 
     def new_game(self):
-        print(f"[main::new_game] Starting new game")
+        logging.info(f"Starting new game")
         self.data.new_game()
         self.window.make_gameboard()
+        self.window.hide_gameover_alert()
 
     def get_grid_dims(self):
         rows = self.get_setting('grid_height')
@@ -61,34 +64,35 @@ class Gameapp():
     def get_gameboard(self):
         return self.data.get_gameboard()
 
-    def quick_reveal(self, row, col, num_clicks):
-        if self.data.game_state in [GameState.LOSE, GameState.WIN]:
-            return
-    
-        if num_clicks != self.settings['quick_reveal'].get_value():
-            return
-
-        state = secrets.quick_reveal(self.data.get_gameboard(), row, col)
-
-        self.update_state(state)
-        self.window.update_grid()
-
     def flag(self, row, col):
         if self.data.game_state in [GameState.LOSE, GameState.WIN]:
             return
-        secrets.flag(self.data.get_gameboard(), row, col)
+        secrets.flag(self.get_gameboard(), row, col)
         self.window.update_grid()
 
     def reveal(self, row, col):
         if self.data.game_state in [GameState.LOSE, GameState.WIN]:
             return
-        state = secrets.reveal(self.data.get_gameboard(), row, col)
+        state = secrets.reveal(self.get_gameboard(), row, col)
         self.update_state(state)
-        self.window.update_grid()
+
+    def quick_reveal(self, row, col, num_clicks):
+        if self.data.game_state in [GameState.LOSE, GameState.WIN]:
+            return
+    
+        if num_clicks != self.get_setting('quick_reveal'):
+            return
+
+        state = secrets.quick_reveal(self.get_gameboard(), row, col)
+        self.update_state(state)
+
 
     def update_state(self, state):
-        # self.text_board()
+        self.window.update_grid()
+        if state == GameState.CONTINUE:
+            state = self.data.check_win_condition()
         self.data.game_state = state
+
         if state in [GameState.WIN, GameState.LOSE]:
             self.gameover()
 
@@ -106,11 +110,13 @@ class Gameapp():
         self.window.update_infobar()
 
     def gameover(self):
+        if self.data.game_state == GameState.LOSE:
+            secrets.reveal_all(self.get_gameboard())
+            self.window.update_grid()
         text = self.get_random_text(self.data.game_state)
         self.window.show_gameover_alert(text)
         print("Game over!", text)
-        # if self.data.game_state == GameState.LOSE:
-        #     secrets.reveal_all(self.get_gameboard())
+
 
     @staticmethod
     def get_random_text(section):

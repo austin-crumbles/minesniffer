@@ -5,11 +5,11 @@
     },
     "grid_width":{
         "type": "tkint",
-        "value": 9
+        "value": 15
     },
     "grid_height":{
         "type": "tkint",
-        "value": 9
+        "value": 15
     },
     "quick_reveal": {
         "type": "tkint",

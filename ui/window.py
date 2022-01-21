@@ -23,6 +23,7 @@ class GameWin():
         self.info_reveal = None
         self.menus = None
         self.gameover_alert = None
+        self.reset_button = None
 
         self.style = None
 
@@ -62,12 +63,10 @@ class GameWin():
                     widget[1].grid(row=0, column=0, sticky="NSEW") 
                     widget[2] = True
                     continue
-
-            text = widget[0].configure('text')
-            if cell['is_flagged'] and text != "X":
-                widget[0].configure(text="X")
-            if not cell['is_flagged'] and text == "X":
-                widget[0].configure(text="")
+                if cell['is_flagged'] is True:
+                    widget[0].configure(text="F")
+                else:
+                    widget[0].configure(text="")
 
     def make_style(self):
         """
@@ -102,6 +101,8 @@ class GameWin():
         timer['text'] = "00:00"
 
         timer.configure(style='timer.TLabel')
+
+        self.reset_button = reset
 
     def make_gameboard(self):
         """
@@ -211,11 +212,15 @@ class GameWin():
         self.gameover_alert = ttk.Label(self.root)
     
     def show_gameover_alert(self, text):
-        self.gameover_alert.configure(text=text)
-        self.gameover_alert.grid(row=1, column=0)
+        # self.gameover_alert.configure(text=text)
+        # self.gameover_alert.grid(row=0, column=0)
+        self.reset_button.configure(text=text)
 
     def hide_gameover_alert(self):
-        self.gameover_alert.grid_remove()
+        # if self.gameover_alert.winfo_ismapped():
+        #     self.gameover_alert.grid_remove()
+
+        self.reset_button.configure(text="BombSniffer")
 
     def show_gridsize_modal(self):
         modals.make_gridsize_modal(self.root, self.controller)

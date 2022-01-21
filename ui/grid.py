@@ -41,7 +41,7 @@ def make_tile(root, controller, coords) -> ttk.Button:
     # grid_tile.grid(row=0, column=0, sticky="NSEW")
 
     tile.bind(
-        '<Button-3>', 
+        '<Button-2>', 
         (lambda e, lamb_row=row, lamb_col=col: controller.flag(lamb_row, lamb_col))
     )
     
