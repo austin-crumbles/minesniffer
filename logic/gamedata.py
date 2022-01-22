@@ -1,5 +1,6 @@
 import math
 from random import randint
+from re import L
 from tkinter.constants import N
 from .gamestate import GameState
 from .coords import CLUE_COORDS
@@ -26,7 +27,7 @@ class GameData:
         """
         self.set_num_mines()
         self.set_gameboard()
-        self.timer = GameTimer()
+        self.timer = GameTimer(self.controller)
         self.game_state = GameState.IDLE
 
     def get_num_mines(self):
@@ -123,3 +124,15 @@ class GameData:
             return GameState.WIN
         else:
             return GameState.CONTINUE
+
+    def start_timer(self):
+        self.timer.start()
+
+    def stop_timer(self):
+        self.timer.stop()
+
+    def get_timer_state(self):
+        if self.timer is None:
+            return False
+
+        return self.timer.running

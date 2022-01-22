@@ -22,8 +22,8 @@ class GameWin():
         self.info_grid = None
         self.info_reveal = None
         self.menus = None
-        self.gameover_alert = None
         self.reset_button = None
+        self.timer = None
 
         self.style = None
 
@@ -33,7 +33,6 @@ class GameWin():
         self.make_topbar()
         self.make_deco()
         self.make_infobar()
-        self.make_gameover_alert()
 
         self.update_infobar()
 
@@ -68,6 +67,9 @@ class GameWin():
                 else:
                     widget[0].configure(text="")
 
+    def update_timer(self, timestr):
+        self.timer.configure(text = timestr)
+
     def make_style(self):
         """
         Initialize the ttke style for the app
@@ -98,11 +100,10 @@ class GameWin():
         top_bar.rowconfigure(0, weight=1)
         top_bar.bind('<3>', lambda e: self.post_options_menu(e))
 
-        timer['text'] = "00:00"
-
         timer.configure(style='timer.TLabel')
 
         self.reset_button = reset
+        self.timer = timer
 
     def make_gameboard(self):
         """
@@ -207,19 +208,11 @@ class GameWin():
 
     def post_quick_reveal_menu(self, e):
         self.menus["quick_reveal"].post(e.x_root, e.y_root)
-
-    def make_gameover_alert(self):
-        self.gameover_alert = ttk.Label(self.root)
     
     def show_gameover_alert(self, text):
-        # self.gameover_alert.configure(text=text)
-        # self.gameover_alert.grid(row=0, column=0)
         self.reset_button.configure(text=text)
 
     def hide_gameover_alert(self):
-        # if self.gameover_alert.winfo_ismapped():
-        #     self.gameover_alert.grid_remove()
-
         self.reset_button.configure(text="BombSniffer")
 
     def show_gridsize_modal(self):

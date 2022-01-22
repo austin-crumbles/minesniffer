@@ -48,9 +48,13 @@ class Gameapp():
             return self.settings[setting]
 
     def new_game(self):
+        if self.data.get_timer_state() is True:
+            self.data.stop_timer()
+
         logging.info(f"Starting new game")
         self.data.new_game()
         self.window.make_gameboard()
+        self.window.update_timer("00:00")
         self.window.hide_gameover_alert()
 
     def get_grid_dims(self):
@@ -71,6 +75,9 @@ class Gameapp():
         self.window.update_grid()
 
     def reveal(self, row, col):
+        if self.data.get_timer_state() is False:
+            self.data.start_timer()
+
         if self.data.game_state in [GameState.LOSE, GameState.WIN]:
             return
         state = secrets.reveal(self.get_gameboard(), row, col)
@@ -86,7 +93,6 @@ class Gameapp():
         state = secrets.quick_reveal(self.get_gameboard(), row, col)
         self.update_state(state)
 
-
     def update_state(self, state):
         self.window.update_grid()
         if state == GameState.CONTINUE:
@@ -95,6 +101,9 @@ class Gameapp():
 
         if state in [GameState.WIN, GameState.LOSE]:
             self.gameover()
+
+    def update_timer(self, timestr):
+        self.window.update_timer(timestr)
 
     def text_board(self):
         b = []
@@ -110,13 +119,13 @@ class Gameapp():
         self.window.update_infobar()
 
     def gameover(self):
+        self.data.stop_timer()
         if self.data.game_state == GameState.LOSE:
             secrets.reveal_all(self.get_gameboard())
             self.window.update_grid()
         text = self.get_random_text(self.data.game_state)
         self.window.show_gameover_alert(text)
         print("Game over!", text)
-
 
     @staticmethod
     def get_random_text(section):
