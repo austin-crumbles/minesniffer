@@ -64,7 +64,7 @@ class GameData:
             gameboard.append([])
             for col in range(grid_cols):
                 gameboard[row].append({
-                    'clue': None,   # Value is one of None, int, or 'mine'
+                    'hint': None,   # Value is one of None, int, or 'M'
                     'is_revealed': False, 
                     'is_flagged': False,
                     'coords': [row, col]
@@ -85,10 +85,10 @@ class GameData:
             while new_mine is None:
                 row = randint(0, rows - 1)
                 col = randint(0, cols - 1)
-                if self.gameboard[row][col]['clue'] == 'mine':
+                if self.gameboard[row][col]['hint'] == 'M':
                     continue
                 new_mine = self.gameboard[row][col]
-                new_mine['clue'] = 'mine'
+                new_mine['hint'] = 'M'
 
     def place_clues(self):
         """
@@ -97,7 +97,7 @@ class GameData:
 
         for row in self.gameboard:
             for cell in row:
-                if cell['clue'] == 'mine':
+                if cell['hint'] == 'M':
                     self.calc_clues(cell)
 
     def calc_clues(self, mine):
@@ -112,10 +112,10 @@ class GameData:
             except IndexError:  # If the above goes out of row or col range (i.e. -1 or > length)
                 continue
 
-            if neighbor_clue['clue'] is None:
-                neighbor_clue['clue'] = 1
-            elif neighbor_clue['clue'] != 'mine':
-                neighbor_clue['clue'] += 1
+            if neighbor_clue['hint'] is None:
+                neighbor_clue['hint'] = 1
+            elif neighbor_clue['hint'] != 'M':
+                neighbor_clue['hint'] += 1
 
     def check_win_condition(self):
         remaining_cells = self.get_num_remaining_cells()

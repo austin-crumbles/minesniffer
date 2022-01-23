@@ -124,6 +124,8 @@ class Gameapp():
     def flag(self, row, col):
         if self.data.game_state in [GameState.LOSE, GameState.WIN]:
             return
+        if self.is_revealed(row, col) is True:
+            return
         secrets.flag(self.get_gameboard(), row, col)
         self.window.update_grid()
 
@@ -139,12 +141,17 @@ class Gameapp():
     def quick_reveal(self, row, col, num_clicks):
         if self.data.game_state in [GameState.LOSE, GameState.WIN]:
             return
-    
+        if self.is_revealed(row, col) is False:
+            return
         if num_clicks != self.get_setting('quick_reveal'):
             return
 
         state = secrets.quick_reveal(self.get_gameboard(), row, col)
         self.update_state(state)
+
+    def is_revealed(self, row, col):
+        cell = self.get_gameboard()[row][col]
+        return cell['is_revealed']
 
     def update_state(self, state):
         self.window.update_grid()
@@ -163,7 +170,7 @@ class Gameapp():
         for row in self.get_gameboard():
             r = []
             for cell in row:
-                r.append(cell['clue'])
+                r.append(cell['hint'])
             b.append(r)
         for r in b:
             print(r)
@@ -196,7 +203,7 @@ class Gameapp():
 
 def main():
     game = Gameapp()
-    # print([m for row in game.get_gameboard() for m in row if m['clue'] is not None])
+    # print([m for row in game.get_gameboard() for m in row if m['hint'] is not None])
 
     game.run()
 

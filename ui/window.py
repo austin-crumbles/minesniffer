@@ -1,8 +1,6 @@
 from tkinter import Tk, HORIZONTAL
 from tkinter import ttk
-from . import grid, menus, modals, sprite
-from .colors import COLORS
-from ui import colors
+from . import grid, menus, modals, sprite, style
 
 QUICK_REVEAL_LABELS = ["Off", "Single-Click", "Double-Click"]
 
@@ -51,34 +49,13 @@ class GameWin():
         self.info_reveal.config(text=f'Quick Reveal: {quick_reveal_label}')
     
     def update_grid(self):
-        gameboard = self.controller.get_gameboard()
-        for row in gameboard:
-            for cell in row:
-                widget = self.board_widgets[cell['coords'][0]][cell['coords'][1]]
-                if widget[2] is True:
-                    continue
-                if cell['is_revealed']:
-                    widget[0].grid_forget()
-                    widget[1].grid(row=0, column=0, sticky="NSEW") 
-                    widget[2] = True
-                    continue
-                if cell['is_flagged'] is True:
-                    widget[0].configure(text="F")
-                else:
-                    widget[0].configure(text="")
+        grid.update_grid(self.controller.get_gameboard(), self.board_widgets)
 
     def update_timer(self, timestr):
         self.timer.configure(text = timestr)
 
     def make_style(self):
-        """
-        Initialize the ttke style for the app
-        """
-        style = ttk.Style(self.root)
-        style.theme_use('default')
-
-        self.style = style
-        self.stylize('dark')
+        self.style = style.make_style(self.root)
 
     def make_menus(self):
         self.menus = menus.make_options_menus(self)
@@ -164,50 +141,6 @@ class GameWin():
         self.info_grid = info_grid
         self.info_reveal = info_reveal
 
-    def stylize(self, theme):
-        """
-        Change the game's colors
-        """
-        self.style.configure(
-            'TFrame', 
-            background=COLORS[theme]['color2']
-        )
-        self.style.configure(
-            'TLabel', 
-            background=COLORS[theme]['color3'],
-            foreground=COLORS[theme]['text1']
-        )
-        self.style.configure(
-            'timer.TLabel', 
-            background=COLORS[theme]['color2'],
-            foreground=COLORS[theme]['text2'], 
-            font='Courier'
-        )
-        self.style.configure('TButton',
-            background=COLORS[theme]['color1'],
-            foreground=COLORS[theme]['text1']
-        )
-        self.style.configure('info.TLabel', 
-            background=COLORS[theme]['color2'],
-            foreground=COLORS[theme]['text2']
-        )
-        grid_dimms = self.controller.get_grid_dims(unit="pixel")
-        self.style.configure('grid.TFrame',
-            width=grid_dimms[1],
-            height=grid_dimms[0]
-        )
-        # self.style.configure('clue.TLabel',
-        #     height=self.controller.get_setting("cell_size"),
-        #     width=self.controller.get_setting("cell_size")
-        # )
-        # self.style.configure('tile.TLabel',
-        #     height=self.controller.get_setting("cell_size"),
-        #     width=5
-        # )
-
-        self.root.configure(background=COLORS[theme]['color2'])
-        self.root.update()
-
     def post_options_menu(self, e):
         self.menus["top"].post(e.x_root, e.y_root)
 
@@ -222,3 +155,6 @@ class GameWin():
 
     def show_gridsize_modal(self):
         modals.make_gridsize_modal(self.root, self.controller)
+
+    def stylize(self, theme):
+        style.stylize(self.style, theme)

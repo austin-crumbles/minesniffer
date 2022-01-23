@@ -16,9 +16,9 @@ def reveal(gameboard, row, col):
     # If the current cell does NOT have an empty clue,
     # then we only want to reveal the current cell. Otherwise,
     # we'd be giving away secrets
-    if current_cell['clue'] == 'mine':
+    if current_cell['hint'] == 'M':
         return GameState.LOSE
-    elif current_cell['clue'] is not None:
+    elif current_cell['hint'] is not None:
         return GameState.CONTINUE
 
     recursive_cell_reveal(gameboard, current_cell)
@@ -47,7 +47,7 @@ def recursive_cell_reveal(gameboard, current_cell) -> list:
     # will inherantly be revealable, and there will not be duplication from previous reveals
     # because of the above line.
     for cell in cells_to_reveal:
-        if cell['clue'] is None:
+        if cell['hint'] is None:
             recursive_cell_reveal(gameboard, cell)
 
     return cells_to_reveal
@@ -70,7 +70,7 @@ def quick_reveal(gameboard, row, col) -> str:
     of the revealed tiles is a mine.
     """
     cell = gameboard[row][col]
-    clue = cell['clue']
+    clue = cell['hint']
 
     # Can't quick-reveal anything if there isn't a clue off which to base the number
     # of surrounding bombs

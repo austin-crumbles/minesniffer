@@ -5,11 +5,11 @@
             "type": "int"
         },
         "grid_width": {
-            "value": 10,
+            "value": 15,
             "type": "tkint"
         },
         "grid_height": {
-            "value": 10,
+            "value": 15,
             "type": "tkint"
         },
         "quick_reveal": {
@@ -17,7 +17,7 @@
             "type": "tkint"
         },
         "difficulty": {
-            "value": "Easy",
+            "value": "Hard",
             "type": "tkstr"
         },
         "game_theme": {

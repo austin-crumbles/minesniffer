@@ -1,4 +1,5 @@
 from tkinter import Menu
+from . import style
 
 def make_options_menus(parent):
     """
@@ -112,31 +113,31 @@ def make_options_menus(parent):
         label="Light", 
         variable=controller.settings['game_theme'], 
         value='light', 
-        command=lambda: parent.stylize('light')
+        command=lambda: style.stylize('light')
     )
     options_theme.add_radiobutton(
         label="Dark", 
         variable=controller.settings['game_theme'], 
         value='dark', 
-        command=lambda: parent.stylize('dark')
+        command=lambda: style.stylize('dark')
     )
     options_theme.add_radiobutton(
         label="Dark red", 
         variable=controller.settings['game_theme'], 
         value='dark_red', 
-        command=lambda: parent.stylize('dark_red')
+        command=lambda: style.stylize('dark_red')
     )
     options_theme.add_radiobutton(
         label="Dark blue", 
         variable=controller.settings['game_theme'], 
         value='dark_blue', 
-        command=lambda: parent.stylize('dark_blue')
+        command=lambda: style.stylize('dark_blue')
     )
     options_theme.add_radiobutton(
         label="Ugly", 
         variable=controller.settings['game_theme'], 
         value='test', 
-        command=lambda: parent.stylize('test')
+        command=lambda: style.stylize('test')
     )
 
     return {
