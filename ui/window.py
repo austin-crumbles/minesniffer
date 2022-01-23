@@ -123,8 +123,8 @@ class GameWin():
             column=0, 
             row=1, 
             padx=20, 
-            pady=(0, 20), 
-            sticky='NSEW'
+            pady=(0, 20) 
+            # sticky='NSEW'
         )
 
         self.board = board_frame
@@ -146,8 +146,8 @@ class GameWin():
         info_reveal = ttk.Label(info)
 
         info.grid(column=0, row=3, sticky='EW')
-        info_grid.grid(column=0, row=0, sticky='W', padx=(20, 0))
-        info_reveal.grid(column=1, row=0, sticky='E', padx=(0, 20))
+        info_grid.grid(column=0, row=0, sticky='W', padx=(20, 10))
+        info_reveal.grid(column=1, row=0, sticky='E', padx=(10, 20))
 
         info.columnconfigure(1, weight=1)
 
@@ -190,6 +190,11 @@ class GameWin():
         self.style.configure('info.TLabel', 
             background=COLORS[theme]['color2'],
             foreground=COLORS[theme]['text2']
+        )
+        grid_dimms = self.controller.get_grid_dims(unit="pixel")
+        self.style.configure('grid.TFrame',
+            width=grid_dimms[1],
+            height=grid_dimms[0]
         )
         # self.style.configure('clue.TLabel',
         #     height=self.controller.get_setting("cell_size"),

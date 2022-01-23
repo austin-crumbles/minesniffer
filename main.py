@@ -2,8 +2,8 @@
 import json
 import random
 import logging
-from os import stat
-from tkinter import StringVar, IntVar
+from tkinter import BooleanVar, StringVar, IntVar
+from tkinter.font import BOLD
 from ui.window import GameWin
 from logic.gamedata import GameData
 from logic import secrets, GameState
@@ -15,34 +15,83 @@ class Gameapp():
         self.data: GameData = None
         self.window: GameWin = None
 
-        self.window = GameWin(self)     # Have to get the Tk root element started before we can load the settings
-        self.read_settings()
+        # Have to get the Tk root element started before we can load the settings
+        self.window = GameWin(self)
+        self.load_settings()
         self.data = GameData(self)
-        self.window.make_window()       # Have to wait for settings to load before we can finish making
-                                        # the rest of the window
+
+        # Have to wait for settings to load before we can finish making
+        # the rest of the window
+        self.window.make_window()       
+        self.window.stylize(self.get_setting("game_theme"))
         self.new_game()
 
-    def read_settings(self):
+    def load_settings(self):
         with open("settings.json", "r") as f:
             json_dict = json.load(f)
 
-        settings = {}
+        game_settings = {}
         # Need to make some settings a Tk variable so that
         # the information is available to the UI
-        for s in json_dict:
-            if json_dict[s]['type'] == "tkint":
-                settings[s] = IntVar(value=json_dict[s]['value'])
+        for s in json_dict['user']:
+            setting = json_dict['user'][s]
+            if setting['type'] == "tkint":
+                game_settings[s] = IntVar(value=setting['value'])
                 continue
-            elif json_dict[s]['type'] == "tkstr":
-                settings[s] = StringVar(value=json_dict[s]['value'])
+            elif setting['type'] == "tkstr":
+                game_settings[s] = StringVar(value=setting['value'])
                 continue
+            elif setting['type'] == "tkbool":
+                game_settings[s] = BooleanVar(value=setting['value'])
+                continue            
             else:
-                settings[s] = json_dict[s]['value']
+                game_settings[s] = setting['value']
 
-        self.settings = settings
+        self.settings = game_settings
+
+    def save_settings(self):
+        if self.get_setting("save_settings_on_quit") is False:
+            self.default_settings()
+            return
+
+        json_dict = {}
+
+        for key in self.settings:
+            val = self.settings[key]
+            if type(val) == StringVar:
+                stype = "tkstr"
+                val = val.get()
+            elif type(val) == IntVar:
+                stype = "tkint"
+                val = val.get()
+            elif type(val) == BooleanVar:
+                stype = "tkbool"
+                val = val.get()
+            elif type(val) == int:
+                stype = "int"
+
+            json_dict[key] = {
+                "value": val,
+                "type": stype
+            }
+        
+        with open("settings.json", "r+") as fp:
+            data = json.load(fp)
+            data['user'] = json_dict
+            fp.seek(0)
+            fp.truncate()
+            json.dump(data, fp, indent=4)
+
+    def default_settings(self):
+        with open("settings.json", "r+") as fp:
+            json_dict = json.load(fp)
+            json_dict['user'] = json_dict['default']
+            fp.seek(0)
+            fp.truncate()
+            json.dump(json_dict, fp, indent=4)
 
     def get_setting(self, setting):
-        if type(self.settings[setting]) in [StringVar, IntVar]:
+        if type(self.settings[setting]) in [StringVar, IntVar, BooleanVar]:
             return self.settings[setting].get()
         else:
             return self.settings[setting]
@@ -57,10 +106,14 @@ class Gameapp():
         self.window.update_timer("00:00")
         self.window.hide_gameover_alert()
 
-    def get_grid_dims(self):
+    def get_grid_dims(self, unit="cell"):
         rows = self.get_setting('grid_height')
         cols = self.get_setting('grid_width')
-        return (rows, cols)
+        if unit == "cell": 
+            return (rows, cols)
+        elif unit == "pixel":
+            cell_size = self.get_setting("cell_size")
+            return (rows * cell_size, cols * cell_size)
 
     def get_num_mines(self):
         return self.data.get_num_mines()
@@ -75,11 +128,11 @@ class Gameapp():
         self.window.update_grid()
 
     def reveal(self, row, col):
+        if self.data.game_state in [GameState.LOSE, GameState.WIN]:
+            return
         if self.data.get_timer_state() is False:
             self.data.start_timer()
 
-        if self.data.game_state in [GameState.LOSE, GameState.WIN]:
-            return
         state = secrets.reveal(self.get_gameboard(), row, col)
         self.update_state(state)
 
@@ -135,6 +188,7 @@ class Gameapp():
         return random.choice(phrases[section])
 
     def quit_game(self):
+        self.save_settings()
         self.window.root.destroy()
 
     def run(self):

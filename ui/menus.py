@@ -26,6 +26,12 @@ def make_options_menus(parent):
         command=controller.new_game, 
         accelerator="Ctrl+N"
     )
+    options_menu.add_checkbutton(
+        label="Save settings on exit",
+        variable=controller.settings['save_settings_on_quit'],
+        onvalue=True,
+        offvalue=False
+    )
     options_menu.add_separator()
     options_menu.add_cascade(
         menu=options_theme, 

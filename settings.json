@@ -1,26 +1,62 @@
 {
-    "cell_size": {
-        "type": "int",
-        "value": 20
+    "user": {
+        "cell_size": {
+            "value": 20,
+            "type": "int"
+        },
+        "grid_width": {
+            "value": 10,
+            "type": "tkint"
+        },
+        "grid_height": {
+            "value": 10,
+            "type": "tkint"
+        },
+        "quick_reveal": {
+            "value": 1,
+            "type": "tkint"
+        },
+        "difficulty": {
+            "value": "Easy",
+            "type": "tkstr"
+        },
+        "game_theme": {
+            "value": "dark_red",
+            "type": "tkstr"
+        },
+        "save_settings_on_quit": {
+            "value": true,
+            "type": "tkbool"
+        }
     },
-    "grid_width":{
-        "type": "tkint",
-        "value": 15
-    },
-    "grid_height":{
-        "type": "tkint",
-        "value": 15
-    },
-    "quick_reveal": {
-        "type": "tkint",
-        "value": 1
-    },
-    "difficulty": {
-        "type": "tkstr",
-        "value": "Normal"
-    },
-    "game_theme": {
-        "type": "tkstr",
-        "value": "default"
+    "default": {
+        "cell_size": {
+            "value": 20,
+            "type": "int"
+        },
+        "grid_width": {
+            "value": 15,
+            "type": "tkint"
+        },
+        "grid_height": {
+            "value": 15,
+            "type": "tkint"
+        },
+        "quick_reveal": {
+            "value": 1,
+            "type": "tkint"
+        },
+        "difficulty": {
+            "value": "Normal",
+            "type": "tkstr"
+        },
+        "game_theme": {
+            "value": "dark",
+            "type": "tkstr"
+        },
+        "save_settings_on_quit": {
+            "value": false,
+            "type": "tkbool"
+        }
     }
 }

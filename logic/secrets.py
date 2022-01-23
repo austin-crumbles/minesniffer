@@ -8,8 +8,10 @@ def reveal(gameboard, row, col):
     """
     current_cell = gameboard[row][col]
 
-    if is_revealable(current_cell):
-        current_cell['is_revealed'] = True
+    if not is_revealable(current_cell):
+        return
+
+    current_cell['is_revealed'] = True
 
     # If the current cell does NOT have an empty clue,
     # then we only want to reveal the current cell. Otherwise,
