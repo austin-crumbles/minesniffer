@@ -4,6 +4,8 @@
 ~~Add display for number of bombs~~
 Add numsets for light themes
 Recolor numsets to match theme colors
+Fix grid size validation
+Reset button resets board on top of gridsize menu. Need to ungrid the menu first
 
 1. ~~Add timer functionality~~
 2. ~~Remember settings~~

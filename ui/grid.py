@@ -96,7 +96,7 @@ def tile_func(tile, controller, row, col):
     else:
         controller.reveal(row, col)
 
-def make_gameboard(gameboard_data, controller):
+def make_gameboard(gameboard_data, controller, animation):
     main = ttk.Frame(
         borderwidth=3,
         relief='sunken'
@@ -109,8 +109,9 @@ def make_gameboard(gameboard_data, controller):
             container = make_container(main, controller, cell['coords'])
             tile = make_tile(container, controller, cell['coords'])
             
-            # container.grid(row=cell['coords'][0], column=cell['coords'][1])     # Container grids to the coords, while
-            # tile.grid(row=0, column=0, sticky='NSEW')                           # the inner elems grid to 0, 0
+            if animation == 'none':
+                container.grid(row=cell['coords'][0], column=cell['coords'][1])     # Container grids to the coords, while
+                tile.grid(row=0, column=0, sticky='NSEW')                           # the inner elems grid to 0, 0
             widget_container.append(tile)
 
         widgets.append(widget_container)

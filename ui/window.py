@@ -113,9 +113,11 @@ class GameWin():
         if self.grid_frame is not None and type(self.grid_frame) is ttk.Frame:
             self.grid_frame.destroy()
 
+        animation = self.controller.get_setting('grid_animation')
         grid_frame, grid_tiles = grid.make_gameboard(
             gameboard,
-            self.controller
+            self.controller,
+            animation
         )
         # Set the parent so the board has some place to go
         grid_frame.grid(
@@ -132,7 +134,8 @@ class GameWin():
         self.update_minecount()
         self.update_tilecount()
 
-        animate.animate_on(gameboard, grid_tiles, self.root, self.controller)
+        if animation != 'none':
+            animate.animate_on(gameboard, grid_tiles, self.root, self.controller)
 
     def make_deco(self):
         """

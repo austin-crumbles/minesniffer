@@ -13,6 +13,7 @@ def make_options_menus(parent):
     options_quick_reveal = Menu(options_menu)
     options_difficulty = Menu(options_menu)
     options_theme = Menu(options_menu)
+    options_animation = Menu(options_menu)
 
     options_bar.add_cascade(
         menu=options_menu, 
@@ -50,6 +51,10 @@ def make_options_menus(parent):
     options_menu.add_cascade(
         menu=options_difficulty, 
         label="Difficulty"
+    )
+    options_menu.add_cascade(
+        menu=options_animation,
+        label="Grid animation"
     )
 
     # ==========================================
@@ -138,6 +143,20 @@ def make_options_menus(parent):
         variable=controller.settings['game_theme'], 
         value='test', 
         command=lambda: parent.stylize('test')
+    )
+    # ==========================================
+    # ================Animation=================
+    # ==========================================
+
+    options_animation.add_radiobutton(
+        label="Off",
+        variable=controller.settings['grid_animation'],
+        value='none'
+    )
+    options_animation.add_radiobutton(
+        label="Linear",
+        variable=controller.settings['grid_animation'],
+        value='linear'
     )
 
     return {

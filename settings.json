@@ -5,32 +5,36 @@
             "type": "int"
         },
         "grid_width": {
-            "value": "10",
+            "value": 15,
             "type": "tkstr"
         },
         "grid_height": {
-            "value": "10",
+            "value": 15,
             "type": "tkstr"
         },
         "quick_reveal": {
-            "value": 2,
+            "value": 1,
             "type": "tkint"
         },
         "difficulty": {
-            "value": "Deadly",
+            "value": "Normal",
             "type": "tkstr"
         },
         "game_theme": {
-            "value": "dark_blue",
+            "value": "dark",
             "type": "tkstr"
         },
         "save_settings_on_quit": {
-            "value": true,
+            "value": false,
             "type": "tkbool"
         },
         "max_cells": {
             "value": 2000,
             "type": "int"
+        },
+        "grid_animation": {
+            "value": "none",
+            "type": "tkstr"
         }
     },
     "default": {
@@ -65,6 +69,10 @@
         "max_cells": {
             "value": 2000,
             "type": "int"
+        },
+        "grid_animation": {
+            "value": "none",
+            "type": "tkstr"
         }
     }
 }
