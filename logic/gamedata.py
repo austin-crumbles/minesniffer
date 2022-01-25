@@ -1,7 +1,5 @@
-import math
+from math import floor, log
 from random import randint
-from re import L
-from tkinter.constants import N
 from .gamestate import GameState
 from .coords import CLUE_COORDS
 from .timer import GameTimer, TimerState
@@ -43,7 +41,8 @@ class GameData:
         rows, cols = self.controller.get_grid_dims()
         gridsize = rows * cols
         dist = MINE_DISTRIBUTION[self.controller.get_setting('difficulty')]
-        num_mines = math.floor(dist * gridsize)
+        num_mines = floor(log(gridsize, 20) * dist * gridsize)
+        # num_mines = floor(dist * gridsize)
 
         self.num_mines = num_mines
 
