@@ -148,3 +148,6 @@ class GameData:
             return
         if self.timer.running == TimerState.RUNNING:
             self.timer.stop()
+    
+    def get_timer_state(self):
+        return self.timer.running

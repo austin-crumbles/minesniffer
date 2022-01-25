@@ -96,12 +96,11 @@ def tile_func(tile, controller, row, col):
     else:
         controller.reveal(row, col)
 
-def make_gameboard(gameboard_data, parent):
+def make_gameboard(gameboard_data, controller):
     main = ttk.Frame(
         borderwidth=3,
         relief='sunken'
     )
-    controller = parent.controller
     widgets = []    # Keeping track of all the widgets on the board
 
     for row in gameboard_data:
@@ -110,9 +109,9 @@ def make_gameboard(gameboard_data, parent):
             container = make_container(main, controller, cell['coords'])
             tile = make_tile(container, controller, cell['coords'])
             
-            container.grid(row=cell['coords'][0], column=cell['coords'][1])     # Container grids to the coords, while
-            tile.grid(row=0, column=0, sticky='NSEW')                           # the inner elems grid to 0, 0
-            widget_container.append(tile)      # Bool used to keep track of if the tile has been removed
+            # container.grid(row=cell['coords'][0], column=cell['coords'][1])     # Container grids to the coords, while
+            # tile.grid(row=0, column=0, sticky='NSEW')                           # the inner elems grid to 0, 0
+            widget_container.append(tile)
 
         widgets.append(widget_container)
 
@@ -123,7 +122,7 @@ def make_gameboard(gameboard_data, parent):
 
     return main, widgets
 
-def update_grid(gameboard, widgets, sprite):
+def update_grid(gameboard, widgets, minesprite, flagsprite):
     for cell in get_two_dim_items(gameboard):
         coord_row = cell['coords'][0]
         cood_col = cell['coords'][1]
@@ -132,7 +131,10 @@ def update_grid(gameboard, widgets, sprite):
         if 'revealed' in tile.configure('style'):
             continue
         if cell['is_flagged'] is True:
-            tile.configure(text='F')
+            tile.configure(image=flagsprite)
+            # tile.configure(text='F')
+        else:
+            tile.configure(image='')
         if cell['is_revealed'] is False:
             continue
 
@@ -141,7 +143,7 @@ def update_grid(gameboard, widgets, sprite):
         tile.configure(text=hint)
         
         if hint == 'M':
-            tile.configure(image=sprite)
+            tile.configure(image=minesprite)
             tile.configure(style='revealed.tile.TLabel')
         elif hint == '':
             tile.configure(style='revealed.tile.TLabel')

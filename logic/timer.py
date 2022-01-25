@@ -68,6 +68,6 @@ class GameTimer(threading.Thread):
         """
         if self.running == TimerState.STOPPED:
             return
-        timestr = self.gettime()
 
+        timestr = self.gettime()
         self.controller.update_timer(timestr)

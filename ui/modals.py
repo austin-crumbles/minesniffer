@@ -1,4 +1,4 @@
-from tkinter import ttk, Toplevel, Scale, HORIZONTAL, FALSE
+from tkinter import ttk
 
 def make_gridsize_modal(parent, controller):
     # gsdiag = Toplevel(root)
@@ -20,7 +20,7 @@ def make_gridsize_modal(parent, controller):
         width=2,
         textvariable=widthvar,
         validate='all',
-        validatecommand=controller.validate_dims,
+        validatecommand=(controller.validate_dims, '%V'),
         invalidcommand=invalid
     )
     gsheight_label = ttk.Label(
@@ -32,7 +32,7 @@ def make_gridsize_modal(parent, controller):
         width=2,
         textvariable=heightvar,
         validate='all',
-        validatecommand=controller.validate_dims,
+        validatecommand=(controller.validate_dims, '%V'),
         invalidcommand=invalid
     )
     gsclose = ttk.Button(

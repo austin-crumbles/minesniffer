@@ -5,11 +5,11 @@
             "type": "int"
         },
         "grid_width": {
-            "value": "40",
+            "value": "10",
             "type": "tkstr"
         },
         "grid_height": {
-            "value": "40",
+            "value": "10",
             "type": "tkstr"
         },
         "quick_reveal": {
@@ -17,11 +17,11 @@
             "type": "tkint"
         },
         "difficulty": {
-            "value": "Hard",
+            "value": "Deadly",
             "type": "tkstr"
         },
         "game_theme": {
-            "value": "dark_red",
+            "value": "dark_blue",
             "type": "tkstr"
         },
         "save_settings_on_quit": {

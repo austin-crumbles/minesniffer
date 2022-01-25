@@ -1,10 +1,17 @@
 from PIL import Image, ImageTk
 import os
 
-def get_sprite(cell_size):
+def get_mine_sprite(cell_size):
     path = os.path.abspath('./ui/minesprite.png')
+    return load_sprite(path, cell_size)
+
+def get_flag_sprite(cell_size):
+    path = os.path.abspath('./ui/flagsprite.png')
+    return load_sprite(path, cell_size)
+
+def load_sprite(path, cell_size):
     sprite = Image.open(path)
     sprite = sprite.resize((cell_size, cell_size))
-    mine_sprite = ImageTk.PhotoImage(sprite)
+    sprite = ImageTk.PhotoImage(sprite)
 
-    return mine_sprite
+    return sprite

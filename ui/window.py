@@ -1,8 +1,9 @@
 from tkinter import Tk, HORIZONTAL
 from tkinter import ttk
+import time
 
 from numpy import tile
-from . import grid, menus, modals, style, sprite
+from . import grid, menus, modals, style, sprite, animate
 
 QUICK_REVEAL_LABELS = ["Off", "Single-Click", "Double-Click"]
 
@@ -16,11 +17,11 @@ class GameWin():
         self.root = root
         self.root.title("BombSniffer")
         self.root.protocol('WM_DELETE_WINDOW', self.controller.quit_game)
-        self.root.minsize(400, 500)
+        # self.root.minsize(400, 500)
 
         # The board is created separately so that it can be refreshed between games
-        self.board = None
-        self.board_widgets = None
+        self.grid_frame = None
+        self.grid_tiles = None
 
         self.info_grid = None
         self.info_reveal = None
@@ -34,7 +35,8 @@ class GameWin():
         self.interrupt_timer = False
 
         self.style = None
-        self.sprite = sprite.get_sprite(self.controller.get_setting('cell_size'))
+        self.mine_sprite = sprite.get_mine_sprite(self.controller.get_setting('cell_size'))
+        self.flag_sprite = sprite.get_flag_sprite(self.controller.get_setting('cell_size'))
 
         self.make_window()
         self.stylize(self.controller.get_setting('game_theme'))
@@ -107,15 +109,16 @@ class GameWin():
         """
         Create the board ui
         """
-        if self.board is not None and type(self.board) is ttk.Frame:
-            self.board.destroy()
+        gameboard = self.controller.get_gameboard()
+        if self.grid_frame is not None and type(self.grid_frame) is ttk.Frame:
+            self.grid_frame.destroy()
 
-        board_frame, board_widgets = grid.make_gameboard(
-            self.controller.get_gameboard(),
-            self
+        grid_frame, grid_tiles = grid.make_gameboard(
+            gameboard,
+            self.controller
         )
         # Set the parent so the board has some place to go
-        board_frame.grid(
+        grid_frame.grid(
             column=0, 
             row=1, 
             padx=20, 
@@ -123,11 +126,13 @@ class GameWin():
             # sticky='NSEW'
         )
 
-        self.board = board_frame
-        self.board_widgets = board_widgets
+        self.grid_frame = grid_frame
+        self.grid_tiles = grid_tiles
 
         self.update_minecount()
         self.update_tilecount()
+
+        animate.animate_on(gameboard, grid_tiles, self.root, self.controller)
 
     def make_deco(self):
         """
@@ -174,8 +179,9 @@ class GameWin():
     def update_grid(self):
         grid.update_grid(
             self.controller.get_gameboard(), 
-            self.board_widgets,
-            self.sprite
+            self.grid_tiles,
+            self.mine_sprite,
+            self.flag_sprite
         )
         self.update_tilecount()
 
@@ -215,23 +221,23 @@ class GameWin():
     def show_gridsize_modal(self):
         self.controller.pause_timer()
         self.interrupt_timer = True
-        self.topbar_timer.configure(text="Paused")
         modal = self.get_gridsize_modal()
-        self.board.grid_remove()
+        self.grid_frame.grid_remove()
         modal.grid(
             row=1,
             column=0,
             padx=20, 
             pady=(0, 10),
             ipadx=5,
-            ipady=10
+            ipady=10,
+            sticky='NSEW'
         )
     
     def hide_gridsize_modal(self):
         self.controller.resume_timer()
         self.interrupt_timer = False
         self.gridsize_modal.grid_remove()
-        self.board.grid()
+        self.grid_frame.grid()
 
     def stylize(self, theme):
         style.stylize(self.style, theme)

@@ -113,31 +113,31 @@ def make_options_menus(parent):
         label="Light", 
         variable=controller.settings['game_theme'], 
         value='light', 
-        command=lambda: style.stylize('light')
+        command=lambda: parent.stylize('light')
     )
     options_theme.add_radiobutton(
         label="Dark", 
         variable=controller.settings['game_theme'], 
         value='dark', 
-        command=lambda: style.stylize('dark')
+        command=lambda: parent.stylize('dark')
     )
     options_theme.add_radiobutton(
         label="Dark red", 
         variable=controller.settings['game_theme'], 
         value='dark_red', 
-        command=lambda: style.stylize('dark_red')
+        command=lambda: parent.stylize('dark_red')
     )
     options_theme.add_radiobutton(
         label="Dark blue", 
         variable=controller.settings['game_theme'], 
         value='dark_blue', 
-        command=lambda: style.stylize('dark_blue')
+        command=lambda: parent.stylize('dark_blue')
     )
     options_theme.add_radiobutton(
         label="Ugly", 
         variable=controller.settings['game_theme'], 
         value='test', 
-        command=lambda: style.stylize('test')
+        command=lambda: parent.stylize('test')
     )
 
     return {

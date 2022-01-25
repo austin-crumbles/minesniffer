@@ -1,5 +1,6 @@
 """Go sniff for some mines"""
 import json
+from logic.timer import TimerState
 import random
 import logging
 from time import sleep
@@ -99,22 +100,31 @@ class Gameapp():
         self.data.stop_timer()
 
         logging.info(f"Starting new game")
-        self.validate_dims()
+        self.validate_dims('focusout')
         self.data.new_game()
         self.window.make_gameboard()
         self.window.update_timer("00:00")
         self.window.hide_gameover_alert()
 
-    def validate_dims(self):
+    def validate_dims(self, value):
         validate = True
         widthvar = self.settings['grid_width']
         heightvar = self.settings['grid_height']
-        if int(widthvar.get()) > 40:
+        width = int(widthvar.get() or 0)
+        height = int(heightvar.get() or 0)
+        if width > 40:
             widthvar.set("40")
             validate = False
-        if int(heightvar.get()) > 40:
+        if height > 40:
             heightvar.set("40")
             validate = False
+        if value in ['focusout', 'focusin']:
+            if widthvar.get() == '' or  widthvar.get() == 0:
+                widthvar.set(10)
+                return False
+            if heightvar.get() == '' or  heightvar.get() == 0:
+                heightvar.set(10)
+                return False
 
         # max_cells = self.get_setting('max_cells')
         # width = int(widthvar.get())
@@ -201,6 +211,8 @@ class Gameapp():
         self.window.update_timer(timestr)
 
     def pause_timer(self):
+        if self.data.get_timer_state() == TimerState.RUNNING:
+            self.window.update_timer("Paused")
         self.data.pause_timer()
 
     def resume_timer(self):
