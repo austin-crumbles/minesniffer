@@ -1,38 +1,52 @@
 from tkinter import Tk, HORIZONTAL
 from tkinter import ttk
-from . import grid, menus, modals, sprite, style
+
+from numpy import tile
+from . import grid, menus, modals, style, sprite
 
 QUICK_REVEAL_LABELS = ["Off", "Single-Click", "Double-Click"]
+
 
 class GameWin():
     """
     Creates the main TK window for the game
     """
-    def __init__(self, controller):
+    def __init__(self, controller, root):
         self.controller = controller
-        self.root = Tk()
+        self.root = root
         self.root.title("BombSniffer")
         self.root.protocol('WM_DELETE_WINDOW', self.controller.quit_game)
+        self.root.minsize(400, 500)
 
         # The board is created separately so that it can be refreshed between games
         self.board = None
         self.board_widgets = None
+
         self.info_grid = None
         self.info_reveal = None
         self.menus = None
-        self.reset_button = None
-        self.timer = None
+        self.topbar_reset = None
+        self.topbar_minecount = None
+        self.topbar_tilecount = None
+        self.topbar_timer = None
+        self.gridsize_modal = None
+
+        self.interrupt_timer = False
 
         self.style = None
+        self.sprite = sprite.get_sprite(self.controller.get_setting('cell_size'))
+
+        self.make_window()
+        self.stylize(self.controller.get_setting('game_theme'))
 
     def make_window(self):
         self.make_style()
         self.make_menus()
         self.make_topbar()
-        self.make_deco()
-        self.make_infobar()
+        # self.make_deco()
+        # self.make_infobar()
 
-        self.update_infobar()
+        # self.update_infobar()
 
         self.root.resizable(False, False)
 
@@ -42,17 +56,6 @@ class GameWin():
         
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(1, weight=1)
-
-    def update_infobar(self):
-        self.info_grid.config(text='Grid size: {0} x {1}'.format(*self.controller.get_grid_dims()))
-        quick_reveal_label = QUICK_REVEAL_LABELS[self.controller.get_setting('quick_reveal')]
-        self.info_reveal.config(text=f'Quick Reveal: {quick_reveal_label}')
-    
-    def update_grid(self):
-        grid.update_grid(self.controller.get_gameboard(), self.board_widgets)
-
-    def update_timer(self, timestr):
-        self.timer.configure(text = timestr)
 
     def make_style(self):
         self.style = style.make_style(self.root)
@@ -67,20 +70,38 @@ class GameWin():
             text="BombSniffer",
             command=self.controller.new_game
         )
+        minecount = ttk.Label(
+            top_bar,
+            text=0,
+            style='stats.TLabel',
+            anchor='center'
+        )
+        tilecount = ttk.Label(
+            top_bar,
+            text=0,
+            style='stats.TLabel',
+            anchor='center'
+        )
         timer = ttk.Label(top_bar)
 
-        reset.grid(column=1, row=0)
-        top_bar.grid(column=0, row=0, pady=20, padx=20, sticky='NSEW')
-        timer.grid(column=1, row=1)
-
+        minecount.grid(row=0, column=0, ipadx=4, ipady=4, sticky='E')
+        reset.grid(row=0, column=1)
+        tilecount.grid(row=0, column=2, ipadx=4, ipady=4, sticky='W')
+        timer.grid(row=1, column=1, pady=(10, 0))
+        top_bar.grid(row=0, column=0, pady=20, padx=20, sticky='NSEW')
+        
+        top_bar.columnconfigure(0, weight=1)
         top_bar.columnconfigure(1, weight=1)
+        top_bar.columnconfigure(2, weight=1)
         top_bar.rowconfigure(0, weight=1)
         top_bar.bind('<3>', lambda e: self.post_options_menu(e))
 
         timer.configure(style='timer.TLabel')
 
-        self.reset_button = reset
-        self.timer = timer
+        self.topbar_reset = reset
+        self.topbar_minecount = minecount
+        self.topbar_tilecount = tilecount
+        self.topbar_timer = timer
 
     def make_gameboard(self):
         """
@@ -89,11 +110,9 @@ class GameWin():
         if self.board is not None and type(self.board) is ttk.Frame:
             self.board.destroy()
 
-        mine_sprite = sprite.get_sprite(self.controller.get_setting("cell_size"))
         board_frame, board_widgets = grid.make_gameboard(
             self.controller.get_gameboard(),
-            self,
-            mine_sprite
+            self
         )
         # Set the parent so the board has some place to go
         board_frame.grid(
@@ -106,6 +125,9 @@ class GameWin():
 
         self.board = board_frame
         self.board_widgets = board_widgets
+
+        self.update_minecount()
+        self.update_tilecount()
 
     def make_deco(self):
         """
@@ -141,20 +163,75 @@ class GameWin():
         self.info_grid = info_grid
         self.info_reveal = info_reveal
 
+    def update_infobar(self):
+        if self.info_grid is None and self.info_reveal is None:
+            return
+
+        self.info_grid.config(text='Grid size: {0} x {1}'.format(*self.controller.get_grid_dims()))
+        quick_reveal_label = QUICK_REVEAL_LABELS[self.controller.get_setting('quick_reveal')]
+        self.info_reveal.config(text=f'Quick Reveal: {quick_reveal_label}')
+    
+    def update_grid(self):
+        grid.update_grid(
+            self.controller.get_gameboard(), 
+            self.board_widgets,
+            self.sprite
+        )
+        self.update_tilecount()
+
+    def update_timer(self, timestr):
+        if self.interrupt_timer is True:
+            return
+        self.topbar_timer.configure(text = timestr)
+
+    def update_tilecount(self):
+        tilecount = self.controller.get_num_remaining_cells()
+        self.topbar_tilecount.configure(text=tilecount)
+
+    def update_minecount(self):
+        minecount = self.controller.get_num_mines()
+        self.topbar_minecount.configure(text=minecount)
+
+    def get_gridsize_modal(self):
+        if self.gridsize_modal is not None:
+            return self.gridsize_modal
+
+        modal = modals.make_gridsize_modal(self, self.controller)
+        self.gridsize_modal = modal
+        return self.gridsize_modal
+
     def post_options_menu(self, e):
-        self.menus["top"].post(e.x_root, e.y_root)
+        self.menus['top'].post(e.x_root, e.y_root)
 
     def post_quick_reveal_menu(self, e):
-        self.menus["quick_reveal"].post(e.x_root, e.y_root)
+        self.menus['quick_reveal'].post(e.x_root, e.y_root)
     
     def show_gameover_alert(self, text):
-        self.reset_button.configure(text=text)
+        self.topbar_reset.configure(text=text)
 
     def hide_gameover_alert(self):
-        self.reset_button.configure(text="BombSniffer")
+        self.topbar_reset.configure(text="BombSniffer")
 
     def show_gridsize_modal(self):
-        modals.make_gridsize_modal(self.root, self.controller)
+        self.controller.pause_timer()
+        self.interrupt_timer = True
+        self.topbar_timer.configure(text="Paused")
+        modal = self.get_gridsize_modal()
+        self.board.grid_remove()
+        modal.grid(
+            row=1,
+            column=0,
+            padx=20, 
+            pady=(0, 10),
+            ipadx=5,
+            ipady=10
+        )
+    
+    def hide_gridsize_modal(self):
+        self.controller.resume_timer()
+        self.interrupt_timer = False
+        self.gridsize_modal.grid_remove()
+        self.board.grid()
 
     def stylize(self, theme):
         style.stylize(self.style, theme)

@@ -84,25 +84,25 @@ def make_options_menus(parent):
     options_difficulty.add_radiobutton(
         label="Easy", 
         variable=controller.settings['difficulty'], 
-        value="Easy",  
+        value='Easy',  
         command=lambda: parent.update_infobar()
     )
     options_difficulty.add_radiobutton(
         label="Normal", 
         variable=controller.settings['difficulty'], 
-        value="Normal", 
+        value='Normal', 
         command=lambda: parent.update_infobar()
     )
     options_difficulty.add_radiobutton(
         label="Hard", 
         variable=controller.settings['difficulty'], 
-        value="Hard", 
+        value='Hard', 
         command=lambda: parent.update_infobar()
     )
     options_difficulty.add_radiobutton(
         label="Deadly", 
         variable=controller.settings['difficulty'], 
-        value="Deadly", 
+        value='Deadly', 
         command=lambda: parent.update_infobar()
     )
 
@@ -141,17 +141,17 @@ def make_options_menus(parent):
     )
 
     return {
-        "top": options_menu, 
-        "difficulty": options_difficulty, 
-        "quick_reveal": options_quick_reveal,
-        "theme": options_theme
+        'top': options_menu, 
+        'difficulty': options_difficulty, 
+        'quick_reveal': options_quick_reveal,
+        'theme': options_theme
     }
 
 def make_menubar(root):
     """
     Create the main top menu bar
     """
-    root.option_add("*tearOff", 0)
+    root.option_add('*tearOff', 0)
 
     options_bar = Menu(root)
     root['menu'] = options_bar

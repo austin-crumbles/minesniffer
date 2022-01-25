@@ -2,7 +2,8 @@
 import json
 import random
 import logging
-from tkinter import BooleanVar, StringVar, IntVar
+from time import sleep
+from tkinter import BooleanVar, StringVar, IntVar, Tk
 from tkinter.font import BOLD
 from ui.window import GameWin
 from logic.gamedata import GameData
@@ -16,18 +17,15 @@ class Gameapp():
         self.window: GameWin = None
 
         # Have to get the Tk root element started before we can load the settings
-        self.window = GameWin(self)
+        root = Tk()
         self.load_settings()
         self.data = GameData(self)
+        self.window = GameWin(self, root)
 
-        # Have to wait for settings to load before we can finish making
-        # the rest of the window
-        self.window.make_window()       
-        self.window.stylize(self.get_setting("game_theme"))
         self.new_game()
 
     def load_settings(self):
-        with open("settings.json", "r") as f:
+        with open('settings.json', 'r') as f:
             json_dict = json.load(f)
 
         game_settings = {}
@@ -35,13 +33,13 @@ class Gameapp():
         # the information is available to the UI
         for s in json_dict['user']:
             setting = json_dict['user'][s]
-            if setting['type'] == "tkint":
+            if setting['type'] == 'tkint':
                 game_settings[s] = IntVar(value=setting['value'])
                 continue
-            elif setting['type'] == "tkstr":
+            elif setting['type'] == 'tkstr':
                 game_settings[s] = StringVar(value=setting['value'])
                 continue
-            elif setting['type'] == "tkbool":
+            elif setting['type'] == 'tkbool':
                 game_settings[s] = BooleanVar(value=setting['value'])
                 continue            
             else:
@@ -50,7 +48,7 @@ class Gameapp():
         self.settings = game_settings
 
     def save_settings(self):
-        if self.get_setting("save_settings_on_quit") is False:
+        if self.get_setting('save_settings_on_quit') is False:
             self.default_settings()
             return
 
@@ -59,23 +57,23 @@ class Gameapp():
         for key in self.settings:
             val = self.settings[key]
             if type(val) == StringVar:
-                stype = "tkstr"
+                stype = 'tkstr'
                 val = val.get()
             elif type(val) == IntVar:
-                stype = "tkint"
+                stype = 'tkint'
                 val = val.get()
             elif type(val) == BooleanVar:
-                stype = "tkbool"
+                stype = 'tkbool'
                 val = val.get()
             elif type(val) == int:
-                stype = "int"
+                stype = 'int'
 
             json_dict[key] = {
-                "value": val,
-                "type": stype
+                'value': val,
+                'type': stype
             }
         
-        with open("settings.json", "r+") as fp:
+        with open('settings.json', 'r+') as fp:
             data = json.load(fp)
             data['user'] = json_dict
             fp.seek(0)
@@ -83,7 +81,7 @@ class Gameapp():
             json.dump(data, fp, indent=4)
 
     def default_settings(self):
-        with open("settings.json", "r+") as fp:
+        with open('settings.json', 'r+') as fp:
             json_dict = json.load(fp)
             json_dict['user'] = json_dict['default']
             fp.seek(0)
@@ -97,23 +95,60 @@ class Gameapp():
             return self.settings[setting]
 
     def new_game(self):
-        if self.data.get_timer_state() is True:
-            self.data.stop_timer()
+        self.window.interrupt_timer = False
+        self.data.stop_timer()
 
         logging.info(f"Starting new game")
+        self.validate_dims()
         self.data.new_game()
         self.window.make_gameboard()
         self.window.update_timer("00:00")
         self.window.hide_gameover_alert()
 
-    def get_grid_dims(self, unit="cell"):
-        rows = self.get_setting('grid_height')
-        cols = self.get_setting('grid_width')
-        if unit == "cell": 
+    def validate_dims(self):
+        validate = True
+        widthvar = self.settings['grid_width']
+        heightvar = self.settings['grid_height']
+        if int(widthvar.get()) > 40:
+            widthvar.set("40")
+            validate = False
+        if int(heightvar.get()) > 40:
+            heightvar.set("40")
+            validate = False
+
+        # max_cells = self.get_setting('max_cells')
+        # width = int(widthvar.get())
+        # height = int(heightvar.get())
+        # product = width * height
+
+        # if product > max_cells:
+        #     overflow = product - max_cells
+        #     over_width = overflow // width
+        #     over_height = overflow // height
+
+        #     if over_width < over_height:
+        #         new_width = width - over_width
+        #         widthvar.set(new_width)
+
+        #         new_overflow
+        #     else:
+        #         new_height = height - over_height
+        #         heightvar.set(height)
+        #     validate = False
+        
+        return validate
+
+    def get_grid_dims(self, unit='cell'):
+        rows = int(self.get_setting('grid_height'))
+        cols = int(self.get_setting('grid_width'))
+        if unit == 'cell': 
             return (rows, cols)
-        elif unit == "pixel":
-            cell_size = self.get_setting("cell_size")
+        elif unit == 'pixel':
+            cell_size = self.get_setting('cell_size')
             return (rows * cell_size, cols * cell_size)
+
+    def get_num_remaining_cells(self):
+        return self.data.get_num_remaining_cells()
 
     def get_num_mines(self):
         return self.data.get_num_mines()
@@ -132,8 +167,8 @@ class Gameapp():
     def reveal(self, row, col):
         if self.data.game_state in [GameState.LOSE, GameState.WIN]:
             return
-        if self.data.get_timer_state() is False:
-            self.data.start_timer()
+        
+        self.data.start_timer()
 
         state = secrets.reveal(self.get_gameboard(), row, col)
         self.update_state(state)
@@ -165,20 +200,17 @@ class Gameapp():
     def update_timer(self, timestr):
         self.window.update_timer(timestr)
 
-    def text_board(self):
-        b = []
-        for row in self.get_gameboard():
-            r = []
-            for cell in row:
-                r.append(cell['hint'])
-            b.append(r)
-        for r in b:
-            print(r)
+    def pause_timer(self):
+        self.data.pause_timer()
+
+    def resume_timer(self):
+        self.data.resume_timer()
 
     def update_infobar(self):
         self.window.update_infobar()
 
     def gameover(self):
+        self.window.interrupt_timer = True
         self.data.stop_timer()
         if self.data.game_state == GameState.LOSE:
             secrets.reveal_all(self.get_gameboard())
@@ -196,6 +228,7 @@ class Gameapp():
 
     def quit_game(self):
         self.save_settings()
+        self.data.stop_timer()
         self.window.root.destroy()
 
     def run(self):
@@ -207,5 +240,5 @@ def main():
 
     game.run()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

@@ -1,10 +1,17 @@
 import threading
 from time import sleep
 
+class TimerState():
+    RUNNING = "RUNNING"
+    STOPPED = "STOPPED"
+    IDLE = "IDLE"
+    PAUSED = "PAUSED"
+
 class GameTimer(threading.Thread):
     """
     Creates a non-reusable timer that counts upward
     """
+
     def __init__(self, controller) -> None:
         super().__init__()
         self.controller = controller
@@ -13,23 +20,29 @@ class GameTimer(threading.Thread):
         self.min = 0
         self.hour = 0
 
-        self.running = False
+        self.running = TimerState.IDLE
 
     def run(self) -> None:
         """
         Used by the threadding Thread to count upward
         """
-        self.running =  True
+        self.running =  TimerState.RUNNING
 
-        while self.running is True:
-            self.time += 1
-            self.calc()
+        while self.running in [TimerState.RUNNING, TimerState.PAUSED]:
             sleep(1)
-
-            self.report_time()
+            if self.running != TimerState.PAUSED:
+                self.time += 1
+                self.calc()
+                self.report_time()
 
     def stop(self) -> None:
-        self.running = False
+        self.running = TimerState.STOPPED
+
+    def pause(self):
+        self.running = TimerState.PAUSED
+
+    def resume(self):
+        self.running = TimerState.RUNNING
 
     def calc(self) -> None:
         """
@@ -53,5 +66,8 @@ class GameTimer(threading.Thread):
         """
         Report the time string back to the controller.
         """
+        if self.running == TimerState.STOPPED:
+            return
         timestr = self.gettime()
+
         self.controller.update_timer(timestr)

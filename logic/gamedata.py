@@ -4,7 +4,7 @@ from re import L
 from tkinter.constants import N
 from .gamestate import GameState
 from .coords import CLUE_COORDS
-from .timer import GameTimer
+from .timer import GameTimer, TimerState
 
 MINE_DISTRIBUTION = {
     'Easy': 0.06,
@@ -126,13 +126,25 @@ class GameData:
             return GameState.CONTINUE
 
     def start_timer(self):
-        self.timer.start()
+        if self.timer is None:
+            return
+        if self.timer.running == TimerState.IDLE:
+            self.timer.start()
+
+    def pause_timer(self):
+        if self.timer is None:
+            return
+        if self.timer.running == TimerState.RUNNING:
+            self.timer.pause()
+
+    def resume_timer(self):
+        if self.timer is None:
+            return
+        if self.timer.running == TimerState.PAUSED:
+            self.timer.resume()
 
     def stop_timer(self):
-        self.timer.stop()
-
-    def get_timer_state(self):
         if self.timer is None:
-            return False
-
-        return self.timer.running
+            return
+        if self.timer.running == TimerState.RUNNING:
+            self.timer.stop()

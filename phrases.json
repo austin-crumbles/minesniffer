@@ -9,7 +9,9 @@
         "You cut the right wires, good job!",
         "Amazing!",
         "Totally tubular!",
-        "Ya did it matey"
+        "Ya did it matey",
+        ":D",
+        ":)"
     ],
     "LOSE": [
         "Oof...",
@@ -21,6 +23,15 @@
         "Yikes! That sucks.",
         "Tee hee",
         "Better luck next time!",
-        "You died."
+        "You died.",
+        "You were supposed to be our hero",
+        ":(",
+        ":'(",
+        "D:",
+        "x_x",
+        "rip",
+        "ripperoni",
+        "rest in peace",
+        "rest in pieces"
     ]
 }

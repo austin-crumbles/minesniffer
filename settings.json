@@ -5,15 +5,15 @@
             "type": "int"
         },
         "grid_width": {
-            "value": 15,
-            "type": "tkint"
+            "value": "40",
+            "type": "tkstr"
         },
         "grid_height": {
-            "value": 15,
-            "type": "tkint"
+            "value": "40",
+            "type": "tkstr"
         },
         "quick_reveal": {
-            "value": 1,
+            "value": 2,
             "type": "tkint"
         },
         "difficulty": {
@@ -27,6 +27,10 @@
         "save_settings_on_quit": {
             "value": true,
             "type": "tkbool"
+        },
+        "max_cells": {
+            "value": 2000,
+            "type": "int"
         }
     },
     "default": {
@@ -36,11 +40,11 @@
         },
         "grid_width": {
             "value": 15,
-            "type": "tkint"
+            "type": "tkstr"
         },
         "grid_height": {
             "value": 15,
-            "type": "tkint"
+            "type": "tkstr"
         },
         "quick_reveal": {
             "value": 1,
@@ -57,6 +61,10 @@
         "save_settings_on_quit": {
             "value": false,
             "type": "tkbool"
+        },
+        "max_cells": {
+            "value": 2000,
+            "type": "int"
         }
     }
 }
