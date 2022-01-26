@@ -1,0 +1,78 @@
+{
+    "user": {
+        "cell_size": {
+            "value": 20,
+            "type": "int"
+        },
+        "grid_width": {
+            "value": "10",
+            "type": "tkstr"
+        },
+        "grid_height": {
+            "value": "10",
+            "type": "tkstr"
+        },
+        "quick_reveal": {
+            "value": 1,
+            "type": "tkint"
+        },
+        "difficulty": {
+            "value": "Deadly",
+            "type": "tkstr"
+        },
+        "game_theme": {
+            "value": "dark",
+            "type": "tkstr"
+        },
+        "save_settings_on_quit": {
+            "value": true,
+            "type": "tkbool"
+        },
+        "max_cells": {
+            "value": 2000,
+            "type": "int"
+        },
+        "grid_animation": {
+            "value": "none",
+            "type": "tkstr"
+        }
+    },
+    "default": {
+        "cell_size": {
+            "value": 20,
+            "type": "int"
+        },
+        "grid_width": {
+            "value": 15,
+            "type": "tkstr"
+        },
+        "grid_height": {
+            "value": 15,
+            "type": "tkstr"
+        },
+        "quick_reveal": {
+            "value": 1,
+            "type": "tkint"
+        },
+        "difficulty": {
+            "value": "Normal",
+            "type": "tkstr"
+        },
+        "game_theme": {
+            "value": "dark",
+            "type": "tkstr"
+        },
+        "save_settings_on_quit": {
+            "value": false,
+            "type": "tkbool"
+        },
+        "max_cells": {
+            "value": 2000,
+            "type": "int"
+        },
+        "grid_animation": {
+            "value": "none",
+            "type": "tkstr"
+        }
+    }
+}
