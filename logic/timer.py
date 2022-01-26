@@ -20,29 +20,32 @@ class GameTimer(threading.Thread):
         self.min = 0
         self.hour = 0
 
-        self.running = TimerState.IDLE
+        self.state = TimerState.IDLE
 
     def run(self) -> None:
         """
         Used by the threadding Thread to count upward
         """
-        self.running =  TimerState.RUNNING
+        self.state = TimerState.RUNNING
 
-        while self.running in [TimerState.RUNNING, TimerState.PAUSED]:
+        while self.state in [TimerState.RUNNING, TimerState.PAUSED]:
             sleep(1)
-            if self.running != TimerState.PAUSED:
+            if self.state != TimerState.PAUSED:
                 self.time += 1
                 self.calc()
                 self.report_time()
 
     def stop(self) -> None:
-        self.running = TimerState.STOPPED
+        if self.state != TimerState.IDLE:
+            self.state = TimerState.STOPPED
 
     def pause(self):
-        self.running = TimerState.PAUSED
+        if self.state == TimerState.RUNNING:
+            self.state = TimerState.PAUSED
 
     def resume(self):
-        self.running = TimerState.RUNNING
+        if self.state == TimerState.PAUSED:
+            self.state = TimerState.RUNNING
 
     def calc(self) -> None:
         """
@@ -66,7 +69,7 @@ class GameTimer(threading.Thread):
         """
         Report the time string back to the controller.
         """
-        if self.running == TimerState.STOPPED:
+        if self.state == TimerState.STOPPED:
             return
 
         timestr = self.gettime()

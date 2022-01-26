@@ -4,13 +4,13 @@ from . import grid
 
 ANIMATION_TIME = 1
 
-def animate_on(gameboard, grid_tiles, root, controller, animation='linear'):
-    w, h = controller.get_grid_dims()
+def animate_on(gameboard_data, tiles, tk_root, grid_dims, animation='linear'):
+    w, h = grid_dims
     gridsize = w * h
 
     anim = None
     if animation == 'linear':
-        animation = linear_grid(gameboard, grid_tiles)
+        animation = linear_grid(gameboard_data, tiles)
     if animation == 'random':
         animation = random_grid()
 
@@ -18,7 +18,7 @@ def animate_on(gameboard, grid_tiles, root, controller, animation='linear'):
         tile.master.grid(row=row, column=col)
         tile.grid(row=0, column=0, sticky='NSEW')
 
-        root.update()
+        tk_root.update()
         time.sleep(ANIMATION_TIME / gridsize)
 
 def linear_grid(gameboard, grid_tiles):

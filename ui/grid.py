@@ -1,9 +1,7 @@
 from tkinter import ttk
-from .colors import COLORS
-from . import sprite
 
 
-def make_container(root, controller, coords) -> ttk.Frame:
+def make_container(root, cell_size, coords) -> ttk.Frame:
     """
     Create the tile container, which contains both the button tile and the
     mine clue underneath.
@@ -14,11 +12,10 @@ def make_container(root, controller, coords) -> ttk.Frame:
     row, col = coords
     container = ttk.Frame(root)
     container.configure(
-        width=controller.get_setting('cell_size'), 
-        height=controller.get_setting('cell_size'), 
+        width=cell_size, 
+        height=cell_size, 
         borderwidth=0, 
         relief='solid'
-        # background=COLORS[controller.get_setting('game_theme')]['color3']
     )
     container.grid(row=row, column=col)
     container.grid_propagate(0)
@@ -27,101 +24,100 @@ def make_container(root, controller, coords) -> ttk.Frame:
 
     return container
 
-# def make_tile(root, controller, coords) -> ttk.Button:
-#     """
-#     The tiles on the grid that hide the clues, and can be marked by a flag
-#     """
-#     row, col = coords
-#     tile = ttk.Button(root)
-#     tile.configure(
-#         # width=controller.get_setting('cell_size'), 
-#         # height=controller.get_setting('cell_size'),
-#         style='tile.TButton', 
-#         command=(lambda lamb_row=row, lamb_col=col: controller.reveal(lamb_row, lamb_col))
-#     )
-#     # Grid commented out -- it'll get gridded later
-#     # grid_tile.grid(row=0, column=0, sticky='NSEW')
 
-#     tile.bind(
-#         '<Button-2>', 
-#         (lambda e, lamb_row=row, lamb_col=col: controller.flag(lamb_row, lamb_col))
-#     )
-    
-#     return tile
-
-def make_tile(root, controller, coords) -> ttk.Label:
+def make_tile(root) -> ttk.Label:
     """
     Gameboard cells which are clickable, and reveal the number of adjacent mines
     """
-    row, col = coords
     tile = ttk.Label(root)
     tile.configure(
         anchor='center', 
         text='',
         style='secret.tile.TLabel'
     )
-    # Grid commented out -- it'll get gridded later
-    # grid_clue.grid(row=0, column=0, sticky='NSEW')
-
-    # Bind both single and double click to the quick_reveal function, so that
-    # the user can change quick reveal settings during a game in progress
-
-    # 
-    tile.bind(
-        '<Button-1>', 
-        (lambda e: tile_func(tile, controller, row, col))
-    )
-    tile.bind(
-        '<Double-Button-1>', 
-        (lambda e: controller.quick_reveal(row, col, 2) if controller.is_revealed(row, col) else None)
-    )
-    tile.bind(
-        '<Button-2>', 
-        (lambda e: controller.flag(row, col) if not controller.is_revealed(row, col) else None)
-    )
-    tile.bind(
-        '<Enter>',
-        (lambda e: tile.configure(style='hover.secret.tile.TLabel') if not controller.is_revealed(row, col) else None)
-    )
-    tile.bind(
-        '<Leave>',
-        (lambda e: tile.configure(style='secret.tile.TLabel') if not controller.is_revealed(row, col) else None)
-    )
 
     return tile
 
-def tile_func(tile, controller, row, col):
-    if controller.is_revealed(row, col):
-        controller.quick_reveal(row, col, 1)
-    else:
-        controller.reveal(row, col)
 
-def make_gameboard(gameboard_data, controller, animation):
+def tile_bindings(tile, controller, coords):
+    # Bind both single and double click to the quick_reveal function, so that
+    # the user can change quick reveal settings during a game in progress
+    row, col = coords
+
+    def click_func(event):
+        is_revealed = controller.is_revealed(row, col)
+        if event == '<Button-1>':
+            if is_revealed:
+                controller.quick_reveal(row, col, 1)
+            else:
+                controller.reveal(row, col)
+        elif event == '<Double-Button-1>' and is_revealed:
+            controller.quick_reveal(row, col, 2)
+        elif event == '<Button-2>' and not is_revealed:
+            controller.flag(row, col)
+    
+    def hover_func(event):
+        if controller.is_revealed(row, col):
+            return
+        if event == '<Enter>':
+            tile.configure(style='hover.secret.tile.TLabel')
+        elif event == '<Leave>':
+            tile.configure(style='secret.tile.TLabel')
+    
+    tile.bind(
+        '<Button-1>', 
+        (lambda e: click_func('<Button-1>'))
+    )
+    tile.bind(
+        '<Double-Button-1>', 
+        (lambda e: click_func('<Double-Button-1>'))
+    )
+    tile.bind(
+        '<Button-2>', 
+        (lambda e: click_func('<Button-2>'))
+    )
+    tile.bind(
+        '<Enter>',
+        (lambda e: hover_func('<Enter>'))
+    )
+    tile.bind(
+        '<Leave>',
+        (lambda e: hover_func('<Leave>'))
+    )
+
+
+def make_gameboard(gameboard_data, cell_size, controller, animation=False):
     main = ttk.Frame(
         borderwidth=3,
         relief='sunken'
     )
-    widgets = []    # Keeping track of all the widgets on the board
+    widgets = []  # Keeping track of all the widgets on the board
 
     for row in gameboard_data:
-        widget_container = []
+        widgets_row = []  # Creating a mirror gameboard, but for widget data
         for cell in row:
-            container = make_container(main, controller, cell['coords'])
-            tile = make_tile(container, controller, cell['coords'])
+            coords = cell['coords']
+            container = make_container(main, cell_size, coords)  # Container makes the width consistent
+            tile = make_tile(container)
+            tile_bindings(tile, controller, coords)                      # Callbacks to main.py for interaction events
             
+            # If there is no animation, grid everything here. Otherwise,
+            # it'll be gridded when the function returns
             if animation == 'none':
-                container.grid(row=cell['coords'][0], column=cell['coords'][1])     # Container grids to the coords, while
-                tile.grid(row=0, column=0, sticky='NSEW')                           # the inner elems grid to 0, 0
-            widget_container.append(tile)
+                container.grid(row=coords[0], column=coords[1])  # Container grids to the coords, while
+                tile.grid(row=0, column=0, sticky='NSEW')        # the inner elems grid to 0, 0
+            widgets_row.append(tile)
 
-        widgets.append(widget_container)
+        widgets.append(widgets_row)
 
-    for i in range(len(gameboard_data[0])):
-        main.rowconfigure(i, weight=1)
-    for i in range(len(gameboard_data[1])):
-        main.columnconfigure(i, weight=1)
+    # # Make the colums of the gameboard flexible
+    # for i in range(len(gameboard_data[0])):
+    #     main.rowconfigure(i, weight=1)
+    # for i in range(len(gameboard_data[1])):
+    #     main.columnconfigure(i, weight=1)
 
     return main, widgets
+
 
 def update_grid(gameboard, widgets, minesprite, flagsprite):
     for cell in get_two_dim_items(gameboard):

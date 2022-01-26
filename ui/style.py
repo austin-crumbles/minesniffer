@@ -88,19 +88,6 @@ def stylize(style, theme):
     style.configure('8.revealed.tile.TLabel',
         foreground=COLORS[numset]['8']
     )
-    # grid_dimms = self.controller.get_grid_dims(unit='pixel')
-    # self.style.configure('grid.TFrame',
-    #     width=grid_dimms[1],
-    #     height=grid_dimms[0]
-    # )
-    # self.style.configure('clue.TLabel',
-    #     height=self.controller.get_setting('cell_size'),
-    #     width=self.controller.get_setting('cell_size')
-    # )
-    # self.style.configure('tile.TLabel',
-    #     height=self.controller.get_setting('cell_size'),
-    #     width=5
-    # )
 
     style.master.configure(background=COLORS[theme]['color2'])
     style.master.update()

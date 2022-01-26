@@ -5,7 +5,8 @@ COLORS = {
         'color3': '#00f',   # Bombfield background
         'color4': '#f0f',   # Hilight
         'text1': '#fff',    # Bombfield text
-        'text2': '#000'     # Root text
+        'text2': '#000',    # Root text
+        'numset': 'light'
     },
     'dark_blue': {
         'color1': '#035',   # Buttons
@@ -40,10 +41,21 @@ COLORS = {
         'color3': '#fff',   # Bombfield background
         'color4': '#777',   # Hilight
         'text1': '#000',    # Bombfield text
-        'text2': '#000'     # Root text
+        'text2': '#000',    # Root text
+        'numset': 'light'
     },
     'numset_dark': {
         '1': '#fff',
+        '2': '#9dd0f9',
+        '3': '#53b0fc',
+        '4': '#a4fc64',
+        '5': '#fce864',
+        '6': '#9f3fff',
+        '7': '#ff3fef',
+        '8': '#ff3f42',
+    },
+    'numset_light': {
+        '1': '#000',
         '2': '#9dd0f9',
         '3': '#53b0fc',
         '4': '#a4fc64',

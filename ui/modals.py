@@ -1,4 +1,5 @@
 from tkinter import ttk
+import logging
 
 def make_gridsize_modal(parent, controller):
     # gsdiag = Toplevel(root)
@@ -61,15 +62,4 @@ def make_gridsize_modal(parent, controller):
     return gsframe
 
 def invalid():
-    print("Invalid dimensions")
-
-
-# def build_loading_window(root):
-#     """Loading window"""
-#     bar_win = Toplevel(root)
-#     bar_win.withdraw()
-#     bar_f = ttk.Frame(bar_win)
-#     bar_label = ttk.Label(bar_f, text="Loading BombSniffer...")
-#     bar_f.grid(padx=10, pady=10)
-#     bar_label.grid(pady=(0, 5))
-#     bar_win.deiconify()
+    logging.warn("Invalid dimensions")
