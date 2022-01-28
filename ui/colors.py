@@ -6,7 +6,7 @@ COLORS = {
         'color4': '#f0f',   # Hilight
         'text1': '#fff',    # Bombfield text
         'text2': '#000',    # Root text
-        'numset': 'light'
+        'numset': 'dark'
     },
     'dark_blue': {
         'color1': '#035',   # Buttons

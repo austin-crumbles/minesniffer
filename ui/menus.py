@@ -65,6 +65,16 @@ def make_options_menus(parent):
         menu=options_animation,
         label="Grid animation"
     )
+    view_menu.add_command(
+        label="Zoom in",
+        accelerator="Ctrl++",
+        command=parent.zoom_in
+    )
+    view_menu.add_command(
+        label="Zoom out",
+        accelerator="Ctrl+-",
+        command=parent.zoom_out
+    )
 
     # ==========================================
     # =============SUB MENU ITEMS===============
@@ -129,13 +139,13 @@ def make_options_menus(parent):
         command=lambda: parent.stylize('dark')
     )
     options_theme.add_radiobutton(
-        label="Dark red", 
+        label="Mars", 
         variable=controller.settings['game_theme'], 
         value='dark_red', 
         command=lambda: parent.stylize('dark_red')
     )
     options_theme.add_radiobutton(
-        label="Dark blue", 
+        label="Ocean", 
         variable=controller.settings['game_theme'], 
         value='dark_blue', 
         command=lambda: parent.stylize('dark_blue')
@@ -159,6 +169,16 @@ def make_options_menus(parent):
         label="Linear",
         variable=controller.settings['grid_animation'],
         value='linear'
+    )
+    options_animation.add_radiobutton(
+        label="Random",
+        variable=controller.settings['grid_animation'],
+        value='random'
+    )
+    options_animation.add_radiobutton(
+        label="Snake",
+        variable=controller.settings['grid_animation'],
+        value='snake'
     )
 
 def make_menubar(root):

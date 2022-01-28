@@ -31,6 +31,10 @@ def stylize(style, theme):
         foreground=COLORS[theme]['text1']
     )
     style.configure(
+        'option.TLabel',
+        foreground=COLORS[theme]['color4']
+    )
+    style.configure(
         'stats.TLabel',
         relief="raised",
         width="3"
@@ -41,51 +45,72 @@ def stylize(style, theme):
         foreground=COLORS[theme]['text2'], 
         font='Courier'
     )
-    style.configure('TButton',
-        background=COLORS[theme]['color1'],
-        foreground=COLORS[theme]['text1']
-    )
-    style.configure('info.TLabel', 
+    style.configure(
+        'info.TLabel', 
         background=COLORS[theme]['color2'],
         foreground=COLORS[theme]['text2']
     )
-    style.configure('tile.TLabel',
+    style.configure(
+        'tile.TLabel',
         background=COLORS[theme]['color3']
     )
-    style.configure('secret.tile.TLabel',
+    style.configure(
+        'secret.tile.TLabel',
         relief='raised',
         background=COLORS[theme]['color1']
     )
-    style.configure('hover.secret.tile.TLabel',
+    style.configure(
+        'hover.secret.tile.TLabel',
         background=COLORS[theme]['color4']
     )
-    style.configure('revealed.tile.TLabel',
-            relief='none'
+    style.configure(
+        'revealed.tile.TLabel',
+        relief='none'
+    )
+    style.configure(
+        'TButton',
+        background=COLORS[theme]['color1'],
+        foreground=COLORS[theme]['text1']
+    )
+    style.configure(
+        'TEntry',
+        relief='none',
+        background=COLORS[theme]['color2']
     )
 
-    numset = f'numset_{COLORS[theme]["numset"]}'    # Get dark or light numset
-    style.configure('1.revealed.tile.TLabel',
+
+    # Get dark or light numset
+    numset = f'numset_{COLORS[theme]["numset"]}'
+    style.configure(
+        '1.revealed.tile.TLabel',
         foreground=COLORS[numset]['1']
     )
-    style.configure('2.revealed.tile.TLabel',
+    style.configure(
+        '2.revealed.tile.TLabel',
         foreground=COLORS[numset]['2']
     )
-    style.configure('3.revealed.tile.TLabel',
+    style.configure(
+        '3.revealed.tile.TLabel',
         foreground=COLORS[numset]['3']
     )
-    style.configure('4.revealed.tile.TLabel',
+    style.configure(
+        '4.revealed.tile.TLabel',
         foreground=COLORS[numset]['4']
     )
-    style.configure('5.revealed.tile.TLabel',
+    style.configure(
+        '5.revealed.tile.TLabel',
         foreground=COLORS[numset]['5']
     )
-    style.configure('6.revealed.tile.TLabel',
+    style.configure(
+        '6.revealed.tile.TLabel',
         foreground=COLORS[numset]['6']
     )
-    style.configure('7.revealed.tile.TLabel',
+    style.configure(
+        '7.revealed.tile.TLabel',
         foreground=COLORS[numset]['7']
     )
-    style.configure('8.revealed.tile.TLabel',
+    style.configure(
+        '8.revealed.tile.TLabel',
         foreground=COLORS[numset]['8']
     )
 

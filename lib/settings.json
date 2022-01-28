@@ -1,15 +1,15 @@
 {
     "user": {
         "cell_size": {
-            "value": 20,
+            "value": 40,
             "type": "int"
         },
         "grid_width": {
-            "value": "10",
+            "value": "15",
             "type": "tkstr"
         },
         "grid_height": {
-            "value": "10",
+            "value": "15",
             "type": "tkstr"
         },
         "quick_reveal": {
@@ -17,7 +17,7 @@
             "type": "tkint"
         },
         "difficulty": {
-            "value": "Deadly",
+            "value": "Normal",
             "type": "tkstr"
         },
         "game_theme": {
@@ -33,14 +33,14 @@
             "type": "int"
         },
         "grid_animation": {
-            "value": "none",
+            "value": "snake",
             "type": "tkstr"
         }
     },
     "default": {
         "cell_size": {
             "value": 20,
-            "type": "int"
+            "type": "tkint"
         },
         "grid_width": {
             "value": 15,

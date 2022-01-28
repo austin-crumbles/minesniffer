@@ -7,59 +7,67 @@ def make_gridsize_modal(parent, controller):
 
     widthvar = controller.settings['grid_width']
     heightvar = controller.settings['grid_height']
-    gsframe = ttk.Frame(root, style='modal.TFrame')
-    gstext = ttk.Label(
-        gsframe,
+    frame = ttk.Frame(root, style='modal.TFrame')
+    disclaim_text = ttk.Label(
+        frame,
         text="Grid size will update in the next game"
     )
-    gswidth_label = ttk.Label(
-        gsframe,
-        text="Width:"
+    dim_frame = ttk.Frame(frame, style='modal.TFrame')
+    width_label = ttk.Label(
+        dim_frame,
+        text="W",
+        style='option.TLabel'
     )
-    gswidth = ttk.Entry(
-        gsframe,
+    width_entry = ttk.Entry(
+        dim_frame,
         width=2,
         textvariable=widthvar,
-        validate='all',
-        validatecommand=(controller.validate_dims, '%V'),
-        invalidcommand=invalid
+        validate='focusout',
+        validatecommand=controller.validate_dims,
+        invalidcommand=invalid,
+        justify='center'
     )
-    gsheight_label = ttk.Label(
-        gsframe,
-        text="Height:"
+    height_label = ttk.Label(
+        dim_frame,
+        text="H",
+        style='option.TLabel'
     )
-    gsheight = ttk.Entry(
-        gsframe,
+    x_label = ttk.Label(dim_frame, text="x")
+    height_entry = ttk.Entry(
+        dim_frame,
         width=2,
         textvariable=heightvar,
-        validate='all',
-        validatecommand=(controller.validate_dims, '%V'),
-        invalidcommand=invalid
+        validate='focusout',
+        validatecommand=controller.validate_dims,
+        invalidcommand=invalid,
+        justify='center'
     )
-    gsclose = ttk.Button(
-        gsframe, 
+    close_button = ttk.Button(
+        frame, 
         text="Close", 
         command=parent.hide_gridsize_modal
     )
 
     # gsdiag.resizable(FALSE, FALSE)
     # gsdiag.title("Grid size")
-    gsframe.columnconfigure(0, weight=1)
-    gsframe.columnconfigure(1, weight=1)
-    gsframe.rowconfigure(0, weight=1)
-    gsframe.rowconfigure(1, weight=1)
-    gsframe.rowconfigure(2, weight=1)
-    gsframe.rowconfigure(3, weight=1)
+    frame.columnconfigure(0, weight=1)
+    frame.columnconfigure(1, weight=1)
+    frame.rowconfigure(0, weight=1)
+    frame.rowconfigure(1, weight=1)
+    frame.rowconfigure(2, weight=1)
+    frame.rowconfigure(3, weight=1)
 
+    width_entry.grid(row=0, column=0, pady=5, ipadx=10, ipady=10)
+    x_label.grid(row=0, column=1, padx='15')
+    height_entry.grid(row=0, column=2, pady=5, ipadx=10, ipady=10)
+    width_label.grid(row=1, column=0, pady=(1, 5))
+    height_label.grid(row=1, column=2, pady=(1, 5))
 
-    gstext.grid(row=0, column=0, columnspan=2)
-    gswidth_label.grid(row=1, column=0, pady=5)
-    gswidth.grid(row=2, column=0, pady=5)
-    gsheight_label.grid(row=1, column=1, pady=5)
-    gsheight.grid(row=2, column=1, pady=5)
-    gsclose.grid(row=3, column=0, pady=10, columnspan=2)
+    disclaim_text.grid(row=0, column=0, columnspan=2, pady=(10, 0))
+    dim_frame.grid(row=2, column=0, columnspan=2)
+    close_button.grid(row=3, column=0, pady=(5, 10), columnspan=2)
 
-    return gsframe
+    return frame
 
 def invalid():
     logging.warn("Invalid dimensions")

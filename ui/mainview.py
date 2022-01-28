@@ -9,6 +9,7 @@ class GameView():
     """
     Creates the main TK window for the game
     """
+
     def __init__(self, controller, root):
         self.controller = controller
         self.root = root
@@ -28,7 +29,7 @@ class GameView():
         self.topbar_timer_display = None
         self.gridsize_modal = None
 
-        self.interrupt_timer = False
+        self.interrupt_timer_update = False
 
         self.style = None
         self.cell_size = self.controller.get_setting('cell_size')
@@ -48,7 +49,10 @@ class GameView():
         # Some keyboard shortcuts
         self.root.bind('<Control-n>', lambda e: self.controller.new_game())
         self.root.bind('<Control-g>', lambda e: self.show_gridsize_modal())
-        
+        self.root.bind('<Control-=>', lambda e: self.zoom_in())
+        self.root.bind('<Control-minus>', lambda e: self.zoom_out())
+
+
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(1, weight=1)
 
@@ -84,7 +88,7 @@ class GameView():
         tilecount.grid(row=0, column=2, ipadx=4, ipady=4, sticky='W')
         timer.grid(row=1, column=1, pady=(10, 0))
         top_bar.grid(row=0, column=0, pady=20, padx=20, sticky='NSEW')
-        
+
         top_bar.columnconfigure(0, weight=1)
         top_bar.columnconfigure(1, weight=1)
         top_bar.columnconfigure(2, weight=1)
@@ -115,10 +119,10 @@ class GameView():
         )
         # Set the parent so the board has some place to go
         grid_frame.grid(
-            column=0, 
-            row=1, 
-            padx=20, 
-            pady=(0, 20) 
+            column=0,
+            row=1,
+            padx=20,
+            pady=(0, 20)
             # sticky='NSEW'
         )
 
@@ -129,11 +133,16 @@ class GameView():
         self.update_tilecount()
 
         if animation != 'none':
-            animate.animate_on(gameboard, grid_tiles, self.root, self.controller.get_grid_dims())
-    
+            animate.animate_on(
+                grid_tiles,
+                self.root,
+                self.controller.get_grid_dims(),
+                animation
+            )
+
     def update_grid(self):
         grid.update_grid(
-            self.controller.get_gameboard(), 
+            self.controller.get_gameboard(),
             self.grid_tiles,
             self.mine_sprite,
             self.flag_sprite
@@ -141,9 +150,9 @@ class GameView():
         self.update_tilecount()
 
     def update_timer_display(self, timestr):
-        if self.interrupt_timer is True:
+        if self.interrupt_timer_update is True:
             return
-        self.topbar_timer_display.configure(text = timestr)
+        self.topbar_timer_display.configure(text=timestr)
 
     def update_tilecount(self):
         tilecount = self.controller.get_num_remaining_cells()
@@ -153,14 +162,10 @@ class GameView():
         minecount = self.controller.get_num_mines()
         self.topbar_minecount.configure(text=minecount)
 
-    def get_gridsize_modal(self):
-        if self.gridsize_modal is not None:
-            return self.gridsize_modal
-
+    def make_gridsize_modal(self):
         modal = modals.make_gridsize_modal(self, self.controller)
         self.gridsize_modal = modal
-        return self.gridsize_modal
-    
+
     def show_gameover_alert(self, text):
         self.topbar_reset.configure(text=text)
 
@@ -171,24 +176,52 @@ class GameView():
         paused = self.controller.pause_timer()
         if paused is TimerState.PAUSED:
             self.topbar_timer_display.configure(text="Paused")
-        self.interrupt_timer = True
-        modal = self.get_gridsize_modal()
+        self.interrupt_timer_update = True
+
+        if self.gridsize_modal is None:
+            self.make_gridsize_modal()
+
         self.grid_frame.grid_remove()
-        modal.grid(
+        self.gridsize_modal.grid(
             row=1,
             column=0,
-            padx=20, 
-            pady=(0, 10),
-            ipadx=5,
+            padx=20,
+            pady=(0, 20),
+            ipadx=10,
             ipady=10,
             sticky='NSEW'
         )
-    
+
     def hide_gridsize_modal(self):
+        if self.gridsize_modal is None:
+            return
         self.controller.resume_timer()
-        self.interrupt_timer = False
+        self.interrupt_timer_update = False
         self.gridsize_modal.grid_remove()
         self.grid_frame.grid()
 
     def stylize(self, theme):
         style.stylize(self.style, theme)
+
+    def zoom_in(self):
+        if self.cell_size >= 50:
+            self.cell_size = 50
+            return
+        self.cell_size += 10
+        self.update_zoom()
+
+    def zoom_out(self):
+        if self.cell_size <= 20:
+            self.cell_size = 20
+            return
+        self.cell_size -= 10
+        self.update_zoom()
+
+    def update_zoom(self):
+        for tile in grid.get_two_dim_items(self.grid_tiles):
+            tile.master.configure(
+                width=self.cell_size,
+                height=self.cell_size
+            )
+        self.controller.settings['cell_size'] = self.cell_size
+        # self.root.update()

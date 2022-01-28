@@ -1,14 +1,15 @@
-from math import floor, log
-from random import randint
+import math
+import random
 from .gamestate import GameState
 from .coords import CLUE_COORDS
 from .timer import GameTimer, TimerState
 
+
 MINE_DISTRIBUTION = {
-    'Easy': 0.06,
-    'Normal': 0.08,
-    'Hard': 0.10,
-    'Deadly': 0.12
+    'Easy': 0.10,
+    'Normal': 0.12,
+    'Hard': 0.16,
+    'Deadly': 0.2
 }
 
 class GameData:
@@ -40,7 +41,10 @@ class GameData:
 
         gridsize = rows * cols
         dist = MINE_DISTRIBUTION[difficulty]
-        num_mines = floor(log(gridsize, 20) * dist * gridsize)
+        tuner = 32000
+        num_mines = math.floor(gridsize * (dist + (gridsize / tuner)))
+        # num_mines = math.floor(math.log(gridsize, 15) * dist * gridsize)
+        # num_mines = floor(dist * gridsize)
 
         self.num_mines = num_mines
 
@@ -78,8 +82,8 @@ class GameData:
             # Place a new mine only if one isn't already placed in that cell
             new_mine = None
             while new_mine is None:
-                row = randint(0, num_rows - 1)
-                col = randint(0, num_cols - 1)
+                row = random.randint(0, num_rows - 1)
+                col = random.randint(0, num_cols - 1)
                 if self.gameboard[row][col]['hint'] == 'M':
                     continue
                 new_mine = self.gameboard[row][col]
