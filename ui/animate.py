@@ -5,54 +5,51 @@ from . import grid
 
 ANIMATION_TIME = 1
 
-def animate_on(tiles, tk_root, grid_dims, animation='linear'):
-    w, h = grid_dims
-    gridsize = w * h
+def animate_on(tiles, root, animation='linear'):
+    rows = len(tiles)
+    cols = len(tiles[0])
+    area = rows * cols
+    coords = grid.get_coords_list(cols, rows)
 
     # animation = None
     if animation == 'linear':
-        animation = linear_grid(w, h)
+        animation_gen = linear_grid(coords, area)
     elif animation == 'random':
-        animation = random_grid(w, h)
+        animation_gen = random_grid(coords, area)
     elif animation == 'snake':
-        animation = snake_grid(w, h)
+        animation_gen = snake_grid(coords, area)
 
-    for row, col in animation:
-        tile = tiles[row][col]
-        tile.master.grid(row=row, column=col)
-        tile.grid(row=0, column=0, sticky='NSEW')
+    for row, col in animation_gen:
+        t = tiles[row][col]
+        t.grid(row=0, column=0, sticky='NSEW')
+        root.update()
+        time.sleep(ANIMATION_TIME / area)
 
-        tk_root.update()
-        time.sleep(ANIMATION_TIME / gridsize)
-
-def linear_grid(width, height):
-    for cell in get_flat_grid(width, height):
+def linear_grid(coords_list, area):
+    for cell in coords_list:
         row, col = cell
         yield row, col
 
-def random_grid(width, height):
-    ungridded = get_flat_grid(width, height)
+def random_grid(coords_list):
+    random.shuffle(coords_list)
 
-    random.shuffle(ungridded)
-
-    for cell in ungridded:
+    for cell in coords_list:
         row, col = cell
         yield row, col
 
-def snake_grid(width, height):
-    ungridded = get_flat_grid(width, height)
+def snake_grid(coords_list):
     current_cell = [0, 0]
     possible_operations = ((0, 1), (1, 0), (0, -1), (-1, 0))
     current_operation = possible_operations[0]
 
-    while len(ungridded) > 0:
+    while len(coords_list) > 0:
         row, col = current_cell
         try:
             if row < 0 or col < 0:
                 raise IndexError
-            if (row, col) not in ungridded:
+            if (row, col) not in coords_list:
                 raise IndexError
-            ungridded.remove((row, col))
+            coords_list.remove((row, col))
             yield row, col
 
         except IndexError:
@@ -65,14 +62,3 @@ def snake_grid(width, height):
 
         current_cell[0] += current_operation[0]
         current_cell[1] += current_operation[1]
-
-def get_flat_grid(width, height):
-    """
-    Returns a 1-dimensional list of all the cell coords in the grid.
-    """
-    grid = []
-    for row in range(width):
-        for col in range(height):
-            grid.append((row, col))
-
-    return grid

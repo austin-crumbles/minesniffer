@@ -9,6 +9,7 @@ from logic import secrets, GameState
 from typing import Union
 
 SETTINGS_PATH = './lib/settings.json'
+MAX_DIM_SIZE = 50
 logging.basicConfig()
 
 
@@ -69,11 +70,11 @@ class Gameapp():
         width_units = int(widthvar.get() or 0)
         height_units = int(heightvar.get() or 0)
 
-        if width_units > 40:
-            widthvar.set("40")
+        if width_units > MAX_DIM_SIZE:
+            widthvar.set(MAX_DIM_SIZE)
             validate = False
-        if height_units > 40:
-            heightvar.set("40")
+        if height_units > MAX_DIM_SIZE:
+            heightvar.set(MAX_DIM_SIZE)
             validate = False
         if width_units == '' or width_units == 0:
             widthvar.set(10)

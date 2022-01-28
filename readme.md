@@ -10,6 +10,8 @@
 8. ~~Add numsets for light themes~~
 9. ~~Fix grid size validation~~
 10. ~~Reset button resets board on top of gridsize menu. Need to ungrid the menu first~~
-11. Optimize large grid sizes
+11. ~Optimize large grid sizes~
+    The issue was that there were too many rows / columns in a single widget. Added separate frame widgets representing rows to the main grid frame to solve the issue.
 12. ~~Add more animations~~
 13. ~~Add zoom in/out~~
+14. Optimize new game by reusing old tiles

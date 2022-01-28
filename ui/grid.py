@@ -1,5 +1,6 @@
 from tkinter import ttk
-
+from threading import Thread
+from . import animate
 
 def make_container(root, cell_size, coords) -> ttk.Frame:
     """
@@ -17,7 +18,7 @@ def make_container(root, cell_size, coords) -> ttk.Frame:
         borderwidth=0,
         relief='solid'
     )
-    container.grid(row=row, column=col)
+    # container.grid(row=row, column=col)
     container.grid_propagate(0)
     container.columnconfigure(0, weight=1)
     container.rowconfigure(0, weight=1)
@@ -86,22 +87,24 @@ def tile_bindings(tile, controller, coords):
     )
 
 
-def make_gameboard(gameboard_data, cell_size, controller, animation=False):
+def make_gameboard(root, gameboard_data, cell_size, controller, animation):
     main = ttk.Frame(
+        root,
         borderwidth=3,
         relief='sunken'
     )
     # Keeping track of all the widgets on the board
-    widgets = []
+    tiles_list = []
 
     for row in gameboard_data:
         # Creating a mirror gameboard, but for widget data
-        widgets_row = []
+        tiles_list_row = []
+        tile_row_frame = ttk.Frame(main)
         for cell in row:
             coords = cell['coords']
 
             # Container makes the width consistent
-            container = make_container(main, cell_size, coords)
+            container = make_container(tile_row_frame, cell_size, coords)
             tile = make_tile(container)
 
             # Callbacks to main.py for interaction events
@@ -110,18 +113,36 @@ def make_gameboard(gameboard_data, cell_size, controller, animation=False):
             # If there is no animation, grid everything here. Otherwise,
             # it'll be gridded when the function returns
             if animation == 'none':
-                # Container grids to the coords, while the inner elems grid to 0, 0
-                container.grid(row=coords[0], column=coords[1])
+                # Animate will take care of gridding these later
                 tile.grid(row=0, column=0, sticky='NSEW')
-            widgets_row.append(tile)
 
-        widgets.append(widgets_row)
+            container.grid(row=0, column=cell['coords'][1])
+            tile_row_frame.grid(row=cell['coords'][0], column=0)
 
-    return main, widgets
+            tiles_list_row.append(tile)
+        tiles_list.append(tiles_list_row)
+
+    main.grid(
+        column=0,
+        row=1,
+        padx=20,
+        pady=(0, 20)
+    )
+
+    if animation != 'none':
+        animate.animate_on(tiles_list, root, animation)
+
+    # # If there is no animation, grid everything here. Otherwise,
+    # # it'll be gridded when the function returns
+    # if animation == 'none':
+    #     # Container grids to the coords, while the inner elems grid to 0, 0
+    #     Gridder().run(widgets, controller)
+
+    return main, tiles_list
 
 
 def update_grid(gameboard, widgets, minesprite, flagsprite):
-    for cell in get_two_dim_items(gameboard):
+    for cell in flatten_grid(gameboard):
         coord_row = cell['coords'][0]
         cood_col = cell['coords'][1]
         tile = widgets[coord_row][cood_col]
@@ -148,10 +169,45 @@ def update_grid(gameboard, widgets, minesprite, flagsprite):
             tile.configure(style=f'{hint}.revealed.tile.TLabel')
 
 
-def get_two_dim_items(two_dim_list):
+def flatten_grid(two_dim_list):
     """
     Get inner items of a 2D list
     """
     for row in two_dim_list:
         for item in row:
             yield item
+
+def get_coords_list(width, height):
+    """
+    Returns a 1-dimensional list of all the cell coords in the grid.
+    """
+    grid = []
+    for row in range(width):
+        for col in range(height):
+            grid.append((row, col))
+
+    return grid
+
+
+class Gridder(Thread):
+    def __init__(self):
+        super().__init__()
+
+    def run(self, widgets, controller):
+        rows = len(widgets)
+        cols = len(widgets[0])
+        tiles = list(flatten_grid(widgets))
+        coords = get_coords_list(width=cols, height=rows)
+
+        for n, t in enumerate(tiles):
+            container = t.master
+            row = container.master
+            t.grid(row=0, column=0, sticky='NSEW')
+            container.grid(row=0, column=coords[n][1])
+            row.grid(row=coords[n][0], column=0)
+            # controller.view.root.update()
+            # time.sleep(.01)
+        # for c in coords:
+        #     container = tiles[0].master
+        #     container.grid(row=c[0], column=c[1])
+        #     tiles[0].grid(row=0, column=0, sticky='NSEW')

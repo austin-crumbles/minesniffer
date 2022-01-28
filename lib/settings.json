@@ -1,15 +1,15 @@
 {
     "user": {
         "cell_size": {
-            "value": 40,
+            "value": 20,
             "type": "int"
         },
         "grid_width": {
-            "value": "15",
+            "value": "50",
             "type": "tkstr"
         },
         "grid_height": {
-            "value": "15",
+            "value": "40",
             "type": "tkstr"
         },
         "quick_reveal": {
@@ -33,7 +33,7 @@
             "type": "int"
         },
         "grid_animation": {
-            "value": "snake",
+            "value": "none",
             "type": "tkstr"
         }
     },

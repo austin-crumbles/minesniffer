@@ -1,6 +1,6 @@
 from logic.timer import TimerState
 from tkinter import ttk
-from . import grid, menus, modals, style, sprite, animate
+from . import grid, menus, modals, style, sprite
 
 QUICK_REVEAL_LABELS = ["Off", "Single-Click", "Double-Click"]
 
@@ -112,18 +112,11 @@ class GameView():
 
         animation = self.controller.get_setting('grid_animation')
         grid_frame, grid_tiles = grid.make_gameboard(
+            self.root,
             gameboard,
             self.cell_size,
             self.controller,
             animation
-        )
-        # Set the parent so the board has some place to go
-        grid_frame.grid(
-            column=0,
-            row=1,
-            padx=20,
-            pady=(0, 20)
-            # sticky='NSEW'
         )
 
         self.grid_frame = grid_frame
@@ -131,14 +124,6 @@ class GameView():
 
         self.update_minecount()
         self.update_tilecount()
-
-        if animation != 'none':
-            animate.animate_on(
-                grid_tiles,
-                self.root,
-                self.controller.get_grid_dims(),
-                animation
-            )
 
     def update_grid(self):
         grid.update_grid(
@@ -218,7 +203,7 @@ class GameView():
         self.update_zoom()
 
     def update_zoom(self):
-        for tile in grid.get_two_dim_items(self.grid_tiles):
+        for tile in grid.flatten_grid(self.grid_tiles):
             tile.master.configure(
                 width=self.cell_size,
                 height=self.cell_size
