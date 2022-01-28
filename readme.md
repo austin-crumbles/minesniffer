@@ -6,5 +6,5 @@ I really enjoyed Minesweeper growing up, so I figured it would be a great app to
 Flag sprite:
 http://pixelartmaker.com/art/b6fdc68bf6bdd78
 
-Bomb sprite:
+Explosion sprite:
 Unknown source
