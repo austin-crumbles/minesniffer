@@ -2,7 +2,56 @@ from tkinter import ttk
 from threading import Thread
 from . import animate
 
-def make_container(root, cell_size, coords) -> ttk.Frame:
+
+def make_gameboard(root, gameboard_data, cell_size, animation, controller):
+    main = ttk.Frame(
+        root,
+        borderwidth=3,
+        relief='sunken'
+    )
+    # Keeping track of all the widgets on the board
+    tiles_list = []
+
+    for row in gameboard_data:
+        # Creating a mirror gameboard, but for widget data
+        tiles_list_row = []
+        tile_row_frame = ttk.Frame(main)
+        for cell in row:
+            coords = cell['coords']
+
+            # Container makes the width consistent
+            container = make_container(tile_row_frame, cell_size)
+            tile = make_tile(container)
+
+            # Callbacks to main.py for interaction events
+            tile_bindings(tile, controller, coords)
+
+            # If there is no animation, grid everything here. Otherwise,
+            # it'll be gridded when the function returns
+            if animation == 'none':
+                # Animate will take care of gridding these later
+                tile.grid(row=0, column=0, sticky='NSEW')
+
+            container.grid(row=0, column=cell['coords'][1])
+            tile_row_frame.grid(row=cell['coords'][0], column=0)
+
+            tiles_list_row.append(tile)
+        tiles_list.append(tiles_list_row)
+
+    main.grid(
+        column=0,
+        row=1,
+        padx=20,
+        pady=(0, 20)
+    )
+
+    if animation != 'none':
+        animate.animate_on(tiles_list, root, animation)
+
+    return main, tiles_list
+
+
+def make_container(root, cell_size) -> ttk.Frame:
     """
     Create the tile container, which contains both the button tile and the
     mine clue underneath.
@@ -10,7 +59,6 @@ def make_container(root, cell_size, coords) -> ttk.Frame:
     Note: Might not use this container if I can get the tile and clue to grid
     without it
     """
-    row, col = coords
     container = ttk.Frame(root)
     container.configure(
         width=cell_size,
@@ -18,7 +66,6 @@ def make_container(root, cell_size, coords) -> ttk.Frame:
         borderwidth=0,
         relief='solid'
     )
-    # container.grid(row=row, column=col)
     container.grid_propagate(0)
     container.columnconfigure(0, weight=1)
     container.rowconfigure(0, weight=1)
@@ -87,62 +134,8 @@ def tile_bindings(tile, controller, coords):
     )
 
 
-def make_gameboard(root, gameboard_data, cell_size, controller, animation):
-    main = ttk.Frame(
-        root,
-        borderwidth=3,
-        relief='sunken'
-    )
-    # Keeping track of all the widgets on the board
-    tiles_list = []
-
-    for row in gameboard_data:
-        # Creating a mirror gameboard, but for widget data
-        tiles_list_row = []
-        tile_row_frame = ttk.Frame(main)
-        for cell in row:
-            coords = cell['coords']
-
-            # Container makes the width consistent
-            container = make_container(tile_row_frame, cell_size, coords)
-            tile = make_tile(container)
-
-            # Callbacks to main.py for interaction events
-            tile_bindings(tile, controller, coords)
-
-            # If there is no animation, grid everything here. Otherwise,
-            # it'll be gridded when the function returns
-            if animation == 'none':
-                # Animate will take care of gridding these later
-                tile.grid(row=0, column=0, sticky='NSEW')
-
-            container.grid(row=0, column=cell['coords'][1])
-            tile_row_frame.grid(row=cell['coords'][0], column=0)
-
-            tiles_list_row.append(tile)
-        tiles_list.append(tiles_list_row)
-
-    main.grid(
-        column=0,
-        row=1,
-        padx=20,
-        pady=(0, 20)
-    )
-
-    if animation != 'none':
-        animate.animate_on(tiles_list, root, animation)
-
-    # # If there is no animation, grid everything here. Otherwise,
-    # # it'll be gridded when the function returns
-    # if animation == 'none':
-    #     # Container grids to the coords, while the inner elems grid to 0, 0
-    #     Gridder().run(widgets, controller)
-
-    return main, tiles_list
-
-
-def update_grid(gameboard, widgets, minesprite, flagsprite):
-    for cell in flatten_grid(gameboard):
+def update_grid(tile_updates, widgets, minesprite, flagsprite):
+    for cell in tile_updates:
         coord_row = cell['coords'][0]
         cood_col = cell['coords'][1]
         tile = widgets[coord_row][cood_col]
@@ -167,6 +160,8 @@ def update_grid(gameboard, widgets, minesprite, flagsprite):
             tile.configure(style='revealed.tile.TLabel')
         else:
             tile.configure(style=f'{hint}.revealed.tile.TLabel')
+
+    tile_updates = []
 
 
 def flatten_grid(two_dim_list):
@@ -193,7 +188,7 @@ class Gridder(Thread):
     def __init__(self):
         super().__init__()
 
-    def run(self, widgets, controller):
+    def run(self, widgets):
         rows = len(widgets)
         cols = len(widgets[0])
         tiles = list(flatten_grid(widgets))
@@ -205,9 +200,35 @@ class Gridder(Thread):
             t.grid(row=0, column=0, sticky='NSEW')
             container.grid(row=0, column=coords[n][1])
             row.grid(row=coords[n][0], column=0)
-            # controller.view.root.update()
-            # time.sleep(.01)
-        # for c in coords:
-        #     container = tiles[0].master
-        #     container.grid(row=c[0], column=c[1])
-        #     tiles[0].grid(row=0, column=0, sticky='NSEW')
+
+
+# class GridFuncs:
+#     def __init__(self, funcs: dict = None):
+#         if funcs is None:
+#             funcs = {}
+
+#         self.funcs_dict = funcs
+#         self.funcs_list = [
+#             'is_revealed',
+#             'quick_reveal',
+#             'reveal',
+#             'flag'
+#         ]
+#         self.is_revealed = None
+#         self.quick_reveal = None
+#         self.reveal = None
+#         self.flag = None
+
+#         self.set_funcs()
+
+#     def set_funcs(self):
+#         for f in self.funcs_list:
+#             if f not in self.funcs_dict:
+#                 def no_func(*args, **kwargs):
+#                     raise NotImplementedError(f"{f} is not defined")
+#                 self.funcs_dict[f] = no_func
+
+#         self.is_revealed = self.funcs_dict['is_revealed']
+#         self.quick_reveal = self.funcs_dict['quick_reveal']
+#         self.reveal = self.funcs_dict['reveal']
+#         self.flag = self.funcs_dict['flag']

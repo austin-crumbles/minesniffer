@@ -12,9 +12,9 @@ class GameTimer(threading.Thread):
     Creates a non-reusable timer that counts upward
     """
 
-    def __init__(self, controller) -> None:
+    def __init__(self, callback_func) -> None:
         super().__init__()
-        self.controller = controller
+        self.callback_func = callback_func
         self.time = 0
         self.sec = 0
         self.min = 0
@@ -33,7 +33,7 @@ class GameTimer(threading.Thread):
             if self.state != TimerState.PAUSED:
                 self.time += 1
                 self.calc()
-                self.report_time()
+                self.callback()
 
     def stop(self) -> None:
         if self.state != TimerState.IDLE:
@@ -65,12 +65,13 @@ class GameTimer(threading.Thread):
         else:
             return f"{self.hour}:{self.min:02}:{self.sec:02}"
 
-    def report_time(self):
+    def callback(self):
         """
-        Report the time string back to the controller.
+        Pass the time string as an argument to the callback function supplied
+        to the constructor.
         """
-        if self.state == TimerState.STOPPED:
+        if self.state == TimerState.STOPPED or self.callback_func is None:
             return
 
         timestr = self.gettime()
-        self.controller.update_timer(timestr)
+        self.callback_func(timestr)

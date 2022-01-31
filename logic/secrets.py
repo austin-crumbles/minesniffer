@@ -1,7 +1,9 @@
+from ui.grid import flatten_grid
 from .gamestate import GameState
 from .coords import CLUE_COORDS
 
-def reveal(gameboard, row, col):
+
+def reveal(gameboard, row, col, tile_updates):
     """
     Reveal tiles, hopefully with significantly less recursion than the first
     iteration of `reveal`
@@ -12,6 +14,7 @@ def reveal(gameboard, row, col):
         return
 
     current_cell['is_revealed'] = True
+    tile_updates.append(current_cell)
 
     # If the current cell does NOT have an empty clue,
     # then we only want to reveal the current cell. Otherwise,
@@ -21,11 +24,12 @@ def reveal(gameboard, row, col):
     elif current_cell['hint'] is not None:
         return GameState.CONTINUE
 
-    recursive_cell_reveal(gameboard, current_cell)
+    recursive_cell_reveal(gameboard, current_cell, tile_updates)
 
     return GameState.CONTINUE
 
-def recursive_cell_reveal(gameboard, current_cell) -> list:
+
+def recursive_cell_reveal(gameboard, current_cell, tile_updates) -> list:
     """
     Returns a list of cells that need to be revealed, recursively working through
     neighboring cells to `current_cell`
@@ -41,6 +45,7 @@ def recursive_cell_reveal(gameboard, current_cell) -> list:
 
     for cell in cells_to_reveal:
         cell['is_revealed'] = True
+        tile_updates.append(cell)
     
     # Loops over the neighbors that need to be revealed, adding additional neighbors
     # only if the neighbors of the current cell have empty clues. Everything in this list
@@ -48,9 +53,10 @@ def recursive_cell_reveal(gameboard, current_cell) -> list:
     # because of the above line.
     for cell in cells_to_reveal:
         if cell['hint'] is None:
-            recursive_cell_reveal(gameboard, cell)
+            recursive_cell_reveal(gameboard, cell, tile_updates)
 
     return cells_to_reveal
+
 
 def is_revealable(cell) -> bool:
     if cell['is_flagged'] is True or cell['is_revealed'] is True:
@@ -58,12 +64,15 @@ def is_revealable(cell) -> bool:
     else:
         return True
 
-def reveal_all(gameboard):
-    for row in gameboard:
-        for cell in row:
-            cell['is_revealed'] = True
 
-def quick_reveal(gameboard, row, col) -> str:
+def reveal_all(gameboard, tile_updates):
+    for cell in flatten_grid(gameboard):
+        if cell['is_revealed'] is False:
+            cell['is_revealed'] = True
+            tile_updates.append(cell)
+
+
+def quick_reveal(gameboard, row, col, tile_updates) -> str:
     """
     Automatically reveal tiles by clicking (or double clicking) on a clue
     if the number of flags has been satisfied. Will cause a game over if one
@@ -94,7 +103,7 @@ def quick_reveal(gameboard, row, col) -> str:
         return GameState.CONTINUE
 
     for neighbor in unflagged_neighbors:
-        state = reveal(gameboard, *neighbor['coords'])
+        state = reveal(gameboard, *neighbor['coords'], tile_updates)
         if state == GameState.LOSE:
             return state
 
@@ -119,6 +128,8 @@ def get_neighbor_cells(gameboard, row, col):
 
     return neighbors
 
-def flag(gameboard, row, col):
-    flag = gameboard[row][col]
-    flag['is_flagged'] = not flag['is_flagged']
+
+def flag(gameboard, row, col, tile_updates):
+    cell = gameboard[row][col]
+    cell['is_flagged'] = not cell['is_flagged']
+    tile_updates.append(cell)

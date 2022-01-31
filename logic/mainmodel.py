@@ -13,8 +13,8 @@ MINE_DISTRIBUTION = {
 }
 
 class GameData:
-    def __init__(self, controller):
-        self.controller = controller
+    def __init__(self, timer_callback=None):
+        self.timer_callback = timer_callback
         self.gameboard = None
         self.num_mines = None
         self.timer = None
@@ -26,10 +26,10 @@ class GameData:
         """
         self.set_num_mines(rows, cols, difficulty)
         self.set_gameboard(rows, cols)
-        self.timer = GameTimer(self.controller)
+        self.timer = GameTimer(self.timer_callback)
         self.game_state = GameState.IDLE
 
-    def get_num_mines(self):
+    def get_num_mines(self) -> int:
         return self.num_mines
 
     def set_num_mines(self, rows, cols, difficulty, n=None):
@@ -41,11 +41,10 @@ class GameData:
 
         gridsize = rows * cols
         dist = MINE_DISTRIBUTION[difficulty]
-        tuner = 32000
-        num_mines = math.floor(gridsize * (dist + (gridsize / tuner)))
-        # num_mines = math.floor(math.log(gridsize, 15) * dist * gridsize)
-        # num_mines = floor(dist * gridsize)
+        tuner = 98000
 
+        # Quadratic formula, where `tuner` is 200x the max gridsize
+        num_mines = math.floor(gridsize * (dist + (gridsize / tuner)))
         self.num_mines = num_mines
 
     def get_num_remaining_cells(self) -> int:

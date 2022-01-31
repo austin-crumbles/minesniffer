@@ -37,7 +37,7 @@ class GameView():
         self.flag_sprite = sprite.get_flag_sprite(self.cell_size)
 
         self.make_window()
-        self.stylize(self.controller.get_setting('game_theme'))
+        self.stylize()
 
     def make_window(self):
         self.make_style()
@@ -60,7 +60,9 @@ class GameView():
         self.style = style.make_style(self.root)
 
     def make_menus(self):
-        menus.make_options_menus(self)
+        settings = self.controller.get_setting_vars()
+        funcs = self.get_menu_funcs()
+        menus.make_options_menus(self.root, settings, funcs)
 
     def make_topbar(self):
         top_bar = ttk.Frame(self.root)
@@ -101,6 +103,13 @@ class GameView():
         self.topbar_minecount = minecount
         self.topbar_tilecount = tilecount
         self.topbar_timer_display = timer
+    
+    def make_gridsize_modal(self):
+        widthvar = self.controller.settings['grid_width']
+        heightvar = self.controller.settings['grid_height']
+        validation_func = self.controller.validate_dims
+        modal = modals.make_gridsize_modal(self, widthvar, heightvar, validation_func)
+        self.gridsize_modal = modal
 
     def make_gameboard(self):
         """
@@ -115,8 +124,8 @@ class GameView():
             self.root,
             gameboard,
             self.cell_size,
-            self.controller,
-            animation
+            animation,
+            self.controller
         )
 
         self.grid_frame = grid_frame
@@ -125,9 +134,28 @@ class GameView():
         self.update_minecount()
         self.update_tilecount()
 
-    def update_grid(self):
+    def get_menu_funcs(self):
+        funcs = {
+            'new_game': self.controller.new_game,
+            'show_gridsize_modal': self.show_gridsize_modal,
+            'zoom_in': self.zoom_in,
+            'zoom_out': self.zoom_out,
+            'stylize': self.stylize
+        }
+        return funcs
+
+    def get_grid_funcs(self):
+        funcs = {
+            'is_revealed': self.controller.is_revealed,
+            'quick_reveal': self.controller.quick_reveal,
+            'reveal': self.controller.reveal,
+            'flag': self.controller.flag        
+        }
+        return funcs
+
+    def update_grid(self, tile_updates):
         grid.update_grid(
-            self.controller.get_gameboard(),
+            tile_updates,
             self.grid_tiles,
             self.mine_sprite,
             self.flag_sprite
@@ -146,10 +174,6 @@ class GameView():
     def update_minecount(self):
         minecount = self.controller.get_num_mines()
         self.topbar_minecount.configure(text=minecount)
-
-    def make_gridsize_modal(self):
-        modal = modals.make_gridsize_modal(self, self.controller)
-        self.gridsize_modal = modal
 
     def show_gameover_alert(self, text):
         self.topbar_reset.configure(text=text)
@@ -185,7 +209,8 @@ class GameView():
         self.gridsize_modal.grid_remove()
         self.grid_frame.grid()
 
-    def stylize(self, theme):
+    def stylize(self):
+        theme = self.controller.get_setting('game_theme')
         style.stylize(self.style, theme)
 
     def zoom_in(self):

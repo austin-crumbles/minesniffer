@@ -1,12 +1,8 @@
 from tkinter import ttk
 import logging
 
-def make_gridsize_modal(parent, controller):
-    # gsdiag = Toplevel(root)
+def make_gridsize_modal(parent, widthvar, heightvar, validation_func):
     root = parent.root
-
-    widthvar = controller.settings['grid_width']
-    heightvar = controller.settings['grid_height']
     frame = ttk.Frame(root, style='modal.TFrame')
     disclaim_text = ttk.Label(
         frame,
@@ -23,7 +19,7 @@ def make_gridsize_modal(parent, controller):
         width=2,
         textvariable=widthvar,
         validate='focusout',
-        validatecommand=controller.validate_dims,
+        validatecommand=validation_func,
         invalidcommand=invalid,
         justify='center'
     )
@@ -38,7 +34,7 @@ def make_gridsize_modal(parent, controller):
         width=2,
         textvariable=heightvar,
         validate='focusout',
-        validatecommand=controller.validate_dims,
+        validatecommand=validation_func,
         invalidcommand=invalid,
         justify='center'
     )
