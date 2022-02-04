@@ -106,22 +106,22 @@ def make_options_menus(root: Tk, setting_vars: dict, functions: dict):
     options_difficulty.add_radiobutton(
         label="Easy", 
         variable=setting_vars.difficulty, 
-        value='Easy'
+        value="Easy"
     )
     options_difficulty.add_radiobutton(
         label="Normal", 
         variable=setting_vars.difficulty, 
-        value='Normal'
+        value="Normal"
     )
     options_difficulty.add_radiobutton(
         label="Hard", 
         variable=setting_vars.difficulty, 
-        value='Hard'
+        value="Hard"
     )
     options_difficulty.add_radiobutton(
         label="Deadly", 
         variable=setting_vars.difficulty, 
-        value='Deadly'
+        value="Deadly"
     )
 
     # =================================
@@ -130,32 +130,32 @@ def make_options_menus(root: Tk, setting_vars: dict, functions: dict):
     options_theme.add_radiobutton(
         label="Light", 
         variable=setting_vars.game_theme, 
-        value='light', 
-        command=lambda: functions.stylize
+        value="light", 
+        command=functions.stylize
     )
     options_theme.add_radiobutton(
         label="Dark", 
         variable=setting_vars.game_theme, 
-        value='dark', 
-        command=lambda: functions.stylize
+        value="dark", 
+        command=functions.stylize
     )
     options_theme.add_radiobutton(
         label="Mars", 
         variable=setting_vars.game_theme, 
-        value='dark_red', 
-        command=lambda: functions.stylize
+        value="dark_red", 
+        command=functions.stylize
     )
     options_theme.add_radiobutton(
         label="Ocean", 
         variable=setting_vars.game_theme, 
-        value='dark_blue', 
-        command=lambda: functions.stylize
+        value="dark_blue", 
+        command=functions.stylize
     )
     options_theme.add_radiobutton(
         label="Ugly", 
         variable=setting_vars.game_theme, 
-        value='test', 
-        command=lambda: functions.stylize
+        value="test", 
+        command=functions.stylize
     )
     # ==========================================
     # ================Animation=================
@@ -164,22 +164,22 @@ def make_options_menus(root: Tk, setting_vars: dict, functions: dict):
     options_animation.add_radiobutton(
         label="Off",
         variable=setting_vars.grid_animation,
-        value='none'
+        value="none"
     )
     options_animation.add_radiobutton(
         label="Linear",
         variable=setting_vars.grid_animation,
-        value='linear'
+        value="linear"
     )
     options_animation.add_radiobutton(
         label="Random",
         variable=setting_vars.grid_animation,
-        value='random'
+        value="random"
     )
     options_animation.add_radiobutton(
         label="Snake",
         variable=setting_vars.grid_animation,
-        value='snake'
+        value="snake"
     )
 
 
@@ -187,10 +187,10 @@ def make_menubar(root):
     """
     Create the main top menu bar
     """
-    root.option_add('*tearOff', 0)
+    root.option_add("*tearOff", 0)
 
     options_bar = Menu(root)
-    root['menu'] = options_bar
+    root["menu"] = options_bar
 
     return options_bar
 
@@ -202,11 +202,11 @@ class MenuFuncs:
 
         self.funcs_dict = funcs
         self.funcs_list = [
-            'new_game',
-            'show_gridsize_modal',
-            'zoom_in',
-            'zoom_out',
-            'stylize'
+            "new_game",
+            "show_gridsize_modal",
+            "zoom_in",
+            "zoom_out",
+            "stylize"
         ]
         self.new_game = None
         self.show_gridsize_modal = None
@@ -223,11 +223,11 @@ class MenuFuncs:
                     raise NotImplementedError(f"{f} is not defined")
                 self.funcs_dict[f] = no_func
 
-        self.new_game = self.funcs_dict['new_game']
-        self.show_gridsize_modal = self.funcs_dict['show_gridsize_modal']
-        self.zoom_in = self.funcs_dict['zoom_in']
-        self.zoom_out = self.funcs_dict['zoom_out']
-        self.stylize = self.funcs_dict['stylize']
+        self.new_game = self.funcs_dict["new_game"]
+        self.show_gridsize_modal = self.funcs_dict["show_gridsize_modal"]
+        self.zoom_in = self.funcs_dict["zoom_in"]
+        self.zoom_out = self.funcs_dict["zoom_out"]
+        self.stylize = self.funcs_dict["stylize"]
 
 
 class MenuVars:
@@ -237,12 +237,12 @@ class MenuVars:
 
         self.vars_dict = vars
         self.vars_list = [
-            'save_settings_on_quit',
-            'quick_reveal',
-            'difficulty',
-            'setting_vars',
-            'grid_animation',
-            'game_theme'
+            "save_settings_on_quit",
+            "quick_reveal",
+            "difficulty",
+            "setting_vars",
+            "grid_animation",
+            "game_theme"
         ]
         self.save_settings_on_quit = None
         self.quick_reveal = None
@@ -260,9 +260,9 @@ class MenuVars:
             if f not in self.vars_dict:
                 self.vars_dict[f] = self.default_var
 
-        self.save_settings_on_quit = self.vars_dict['save_settings_on_quit']
-        self.quick_reveal = self.vars_dict['quick_reveal']
-        self.difficulty = self.vars_dict['difficulty']
-        self.setting_vars = self.vars_dict['setting_vars']
-        self.grid_animation = self.vars_dict['grid_animation']
-        self.game_theme = self.vars_dict['game_theme']
+        self.save_settings_on_quit = self.vars_dict["save_settings_on_quit"]
+        self.quick_reveal = self.vars_dict["quick_reveal"]
+        self.difficulty = self.vars_dict["difficulty"]
+        self.setting_vars = self.vars_dict["setting_vars"]
+        self.grid_animation = self.vars_dict["grid_animation"]
+        self.game_theme = self.vars_dict["game_theme"]

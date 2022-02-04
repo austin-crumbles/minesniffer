@@ -1,5 +1,6 @@
 from tkinter import ttk
 from threading import Thread
+from logic import gridtools
 from . import animate
 
 
@@ -7,7 +8,7 @@ def make_gameboard(root, gameboard_data, cell_size, animation, controller):
     main = ttk.Frame(
         root,
         borderwidth=3,
-        relief='sunken'
+        relief="sunken"
     )
     # Keeping track of all the widgets on the board
     tiles_list = []
@@ -17,7 +18,7 @@ def make_gameboard(root, gameboard_data, cell_size, animation, controller):
         tiles_list_row = []
         tile_row_frame = ttk.Frame(main)
         for cell in row:
-            coords = cell['coords']
+            coords = cell["coords"]
 
             # Container makes the width consistent
             container = make_container(tile_row_frame, cell_size)
@@ -27,13 +28,13 @@ def make_gameboard(root, gameboard_data, cell_size, animation, controller):
             tile_bindings(tile, controller, coords)
 
             # If there is no animation, grid everything here. Otherwise,
-            # it'll be gridded when the function returns
-            if animation == 'none':
+            # it will be gridded when the function returns
+            if animation == "none":
                 # Animate will take care of gridding these later
-                tile.grid(row=0, column=0, sticky='NSEW')
+                tile.grid(row=0, column=0, sticky="NSEW")
 
-            container.grid(row=0, column=cell['coords'][1])
-            tile_row_frame.grid(row=cell['coords'][0], column=0)
+            container.grid(row=0, column=cell["coords"][1])
+            tile_row_frame.grid(row=cell["coords"][0], column=0)
 
             tiles_list_row.append(tile)
         tiles_list.append(tiles_list_row)
@@ -45,7 +46,7 @@ def make_gameboard(root, gameboard_data, cell_size, animation, controller):
         pady=(0, 20)
     )
 
-    if animation != 'none':
+    if animation != "none":
         animate.animate_on(tiles_list, root, animation)
 
     return main, tiles_list
@@ -64,7 +65,7 @@ def make_container(root, cell_size) -> ttk.Frame:
         width=cell_size,
         height=cell_size,
         borderwidth=0,
-        relief='solid'
+        relief="solid"
     )
     container.grid_propagate(0)
     container.columnconfigure(0, weight=1)
@@ -77,11 +78,11 @@ def make_tile(root) -> ttk.Label:
     """
     Gameboard cells which are clickable, and reveal the number of adjacent mines
     """
-    tile = ttk.Label(root)
+    tile = GridTile(root)
     tile.configure(
-        anchor='center',
-        text='',
-        style='secret.tile.TLabel'
+        anchor="center",
+        text="",
+        style="secret.tile.TLabel"
     )
 
     return tile
@@ -93,84 +94,85 @@ def tile_bindings(tile, controller, coords):
     row, col = coords
 
     def click_func(event):
-        is_revealed = controller.is_revealed(row, col)
-        if event == '<Button-1>':
-            if is_revealed:
+        if event == "<Button-1>":
+            if tile.is_revealed is True:
                 controller.quick_reveal(row, col, 1)
             else:
                 controller.reveal(row, col)
-        elif event == '<Double-Button-1>' and is_revealed:
+        elif event == "<Double-Button-1>" and tile.is_revealed is True:
             controller.quick_reveal(row, col, 2)
-        elif event == '<Button-2>' and not is_revealed:
+        elif event == "<Button-2>" and tile.is_revealed is False:
             controller.flag(row, col)
 
     def hover_func(event):
-        if controller.is_revealed(row, col):
+        if tile.is_revealed is True:
             return
-        if event == '<Enter>':
-            tile.configure(style='hover.secret.tile.TLabel')
-        elif event == '<Leave>':
-            tile.configure(style='secret.tile.TLabel')
+        if event == "<Enter>":
+            tile.configure(style="hover.secret.tile.TLabel")
+        elif event == "<Leave>":
+            tile.configure(style="secret.tile.TLabel")
 
     tile.bind(
-        '<Button-1>',
-        (lambda e: click_func('<Button-1>'))
+        "<Button-1>",
+        (lambda e: click_func("<Button-1>"))
     )
     tile.bind(
-        '<Double-Button-1>',
-        (lambda e: click_func('<Double-Button-1>'))
+        "<Double-Button-1>",
+        (lambda e: click_func("<Double-Button-1>"))
     )
     tile.bind(
-        '<Button-2>',
-        (lambda e: click_func('<Button-2>'))
+        "<Button-2>",
+        (lambda e: click_func("<Button-2>"))
     )
     tile.bind(
-        '<Enter>',
-        (lambda e: hover_func('<Enter>'))
+        "<Enter>",
+        (lambda e: hover_func("<Enter>"))
     )
     tile.bind(
-        '<Leave>',
-        (lambda e: hover_func('<Leave>'))
+        "<Leave>",
+        (lambda e: hover_func("<Leave>"))
     )
 
 
 def update_grid(tile_updates, widgets, minesprite, flagsprite):
-    for cell in tile_updates:
-        coord_row = cell['coords'][0]
-        cood_col = cell['coords'][1]
+    for data_cell in tile_updates:
+        coord_row = data_cell["coords"][0]
+        cood_col = data_cell["coords"][1]
         tile = widgets[coord_row][cood_col]
 
-        if 'revealed' in tile.configure('style'):
+        if tile.is_revealed is True:
             continue
-        if cell['is_flagged'] is True:
+        if data_cell["is_flagged"] is True:
             tile.configure(image=flagsprite)
         else:
-            tile.configure(image='')
-        if cell['is_revealed'] is False:
+            tile.configure(image="")
+        if data_cell["is_revealed"] is False:
             continue
 
         # Reveal the tile
-        hint = cell['hint'] or ''
+        # If the hint is `None`, then pass it along as an empty string instead.
+        hint = data_cell["hint"] or ""
         tile.configure(text=hint)
+        tile.is_revealed = True
 
-        if hint == 'M':
+        if hint == "M":
             tile.configure(image=minesprite)
-            tile.configure(style='revealed.tile.TLabel')
-        elif hint == '':
-            tile.configure(style='revealed.tile.TLabel')
+            tile.configure(style="revealed.tile.TLabel")
+        elif hint == "":
+            tile.configure(style="revealed.tile.TLabel")
         else:
-            tile.configure(style=f'{hint}.revealed.tile.TLabel')
+            tile.configure(style=f"{hint}.revealed.tile.TLabel")
 
     tile_updates = []
 
 
-def flatten_grid(two_dim_list):
-    """
-    Get inner items of a 2D list
-    """
-    for row in two_dim_list:
-        for item in row:
-            yield item
+# def flatten_grid(two_dim_list):
+#     """
+#     Get inner items of a 2D list
+#     """
+#     for row in two_dim_list:
+#         for item in row:
+#             yield item
 
 def get_coords_list(width, height):
     """
@@ -184,6 +186,12 @@ def get_coords_list(width, height):
     return grid
 
 
+class GridTile(ttk.Label):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.is_revealed = False
+
+
 class Gridder(Thread):
     def __init__(self):
         super().__init__()
@@ -191,44 +199,12 @@ class Gridder(Thread):
     def run(self, widgets):
         rows = len(widgets)
         cols = len(widgets[0])
-        tiles = list(flatten_grid(widgets))
+        tiles = list(gridtools.flatten_list(widgets))
         coords = get_coords_list(width=cols, height=rows)
 
         for n, t in enumerate(tiles):
             container = t.master
             row = container.master
-            t.grid(row=0, column=0, sticky='NSEW')
+            t.grid(row=0, column=0, sticky="NSEW")
             container.grid(row=0, column=coords[n][1])
             row.grid(row=coords[n][0], column=0)
-
-
-# class GridFuncs:
-#     def __init__(self, funcs: dict = None):
-#         if funcs is None:
-#             funcs = {}
-
-#         self.funcs_dict = funcs
-#         self.funcs_list = [
-#             'is_revealed',
-#             'quick_reveal',
-#             'reveal',
-#             'flag'
-#         ]
-#         self.is_revealed = None
-#         self.quick_reveal = None
-#         self.reveal = None
-#         self.flag = None
-
-#         self.set_funcs()
-
-#     def set_funcs(self):
-#         for f in self.funcs_list:
-#             if f not in self.funcs_dict:
-#                 def no_func(*args, **kwargs):
-#                     raise NotImplementedError(f"{f} is not defined")
-#                 self.funcs_dict[f] = no_func
-
-#         self.is_revealed = self.funcs_dict['is_revealed']
-#         self.quick_reveal = self.funcs_dict['quick_reveal']
-#         self.reveal = self.funcs_dict['reveal']
-#         self.flag = self.funcs_dict['flag']

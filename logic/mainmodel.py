@@ -1,15 +1,15 @@
 import math
 import random
+from . import gridtools
 from .gamestate import GameState
-from .coords import CLUE_COORDS
 from .timer import GameTimer, TimerState
 
 
 MINE_DISTRIBUTION = {
-    'Easy': 0.10,
-    'Normal': 0.12,
-    'Hard': 0.16,
-    'Deadly': 0.2
+    "Easy": 0.10,
+    "Normal": 0.12,
+    "Hard": 0.16,
+    "Deadly": 0.2
 }
 
 class GameData:
@@ -48,13 +48,22 @@ class GameData:
         self.num_mines = num_mines
 
     def get_num_remaining_cells(self) -> int:
-        cells = [cell for row in self.gameboard for cell in row if cell['is_revealed'] is False]
+        """
+        Count the number of data cells that have not been revealed.
+        """
+        cells = [cell for row in self.gameboard for cell in row if cell["is_revealed"] is False]
         return len(cells)
 
     def get_gameboard(self):
+        """
+        Returns the current gameboard.
+        """
         return self.gameboard
 
     def set_gameboard(self, num_rows, num_cols):
+        """
+        Creates a new gameboard with the size `num_rows` x `num_cols`
+        """
         gameboard = []
 
         # Loop over every cell and make a new container, tile, and clue based
@@ -63,10 +72,10 @@ class GameData:
             gameboard.append([])
             for col in range(num_cols):
                 gameboard[row].append({
-                    'hint': None,   # Value is one of None, int, or 'M'
-                    'is_revealed': False, 
-                    'is_flagged': False,
-                    'coords': [row, col]
+                    "hint": None,   # Value is one of None, int, or "M"
+                    "is_revealed": False, 
+                    "is_flagged": False,
+                    "coords": [row, col]
                 })
 
         self.gameboard = gameboard
@@ -83,37 +92,43 @@ class GameData:
             while new_mine is None:
                 row = random.randint(0, num_rows - 1)
                 col = random.randint(0, num_cols - 1)
-                if self.gameboard[row][col]['hint'] == 'M':
+                if self.gameboard[row][col]["hint"] == "M":
                     continue
                 new_mine = self.gameboard[row][col]
-                new_mine['hint'] = 'M'
+                new_mine["hint"] = "M"
 
     def place_clues(self):
         """
         Calculates mine hints arround mines. Modifies `grid_data` in place.
         """
 
-        for row in self.gameboard:
-            for cell in row:
-                if cell['hint'] == 'M':
-                    self.calc_clues(cell)
+        for cell in gridtools.flatten_list(self.gameboard):
+            if cell["hint"] == "M":
+                self.calc_clues(*cell["coords"])
 
-    def calc_clues(self, mine):
-        for coord in CLUE_COORDS:
-            clue_row = mine['coords'][0] + coord[0]
-            clue_col = mine['coords'][1] + coord[1]
+    def calc_clues(self, row, col, operation="add"):
+        """
+        Calculate the number of surrounding mines, and set the data cell located at
+        `(row, col)` to that number.
 
-            if clue_row < 0 or clue_col < 0:
-                continue
-            try:
-                neighbor_clue = self.gameboard[clue_row][clue_col]
-            except IndexError:  # If the above goes out of row or col range (i.e. -1 or > length)
-                continue
+        `operation` is "add" for normal gameboard creation, but can be "subtract" when
+        a mine needs to be removed (such as when replacing a mine on the user"s first
+        move.)
+        """
+        neighbors = gridtools.get_neighbor_cells(self.gameboard, row, col)
+        for cell in neighbors:
+            if operation == "add":
+                if cell["hint"] is None:
+                    cell["hint"] = 1
+                elif cell["hint"] != "M":
+                    cell["hint"] += 1
+            elif operation == "subtract":
+                if cell["hint"] == 1:
+                    cell["hint"] = None
+                elif cell["hint"] != "M":
+                    cell["hint"] -= 1
 
-            if neighbor_clue['hint'] is None:
-                neighbor_clue['hint'] = 1
-            elif neighbor_clue['hint'] != 'M':
-                neighbor_clue['hint'] += 1
+        return neighbors
 
     def check_win_condition(self):
         remaining_cells = self.get_num_remaining_cells()
@@ -153,3 +168,47 @@ class GameData:
     
     def get_timer_state(self):
         return self.timer.state
+
+    def check_first_move(self, row, col):
+        """
+        Check whether the tile about to be revealed is a mine or not. If it is, move the
+        mine to a different location on the grid, and recalculate hints that surround both
+        the old location and the new location.
+        """
+        cell = self.gameboard[row][col]
+        if cell["hint"] != "M":
+            return
+
+        old_neighbors = self.calc_clues(*cell["coords"], operation="subtract")
+        # Recalculate the hint based on the number of mines that surrounded the previous
+        # location of the mine.
+        surrounding_mines = len([m for m in old_neighbors if m["hint"] == "M"])
+        if surrounding_mines == 0:
+            surrounding_mines = None
+        # Wait until after calculating clues to change the hint becuase clues are calculated
+        # based on whether the provided cell is a mine or not
+        cell["hint"] = surrounding_mines
+
+        # Keep track of the tiles that need to be updated. Originally needed this for testing,
+        # but since the game should never have to update the actual on-screen tiles, this line
+        # is not necessary
+        # tile_updates = [cell]
+        # tile_updates.extend(old_neighbors)
+
+        # Grab a random cell that doesn't already contain a mine, and isn't at the same
+        # coords as the previous mine
+        other_cells = []
+        for c in gridtools.flatten_list(self.gameboard):
+            if c["hint"] != "M" and c["coords"] != cell["coords"]:
+                other_cells.append(c)
+
+        new_mine = random.choice(other_cells)
+        # Need to change the hint before calculating clues, for the same reason as above
+        new_mine["hint"] = "M"
+        new_neighbors = self.calc_clues(*new_mine["coords"])
+
+        # See comment above 
+        # tile_updates.append(new_mine)
+        # tile_updates.extend(new_neighbors)
+
+        # return tile_updates

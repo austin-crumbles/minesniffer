@@ -5,23 +5,23 @@ from . import grid
 
 ANIMATION_TIME = 1
 
-def animate_on(tiles, root, animation='linear'):
+def animate_on(tiles, root, animation="linear"):
     rows = len(tiles)
     cols = len(tiles[0])
     area = rows * cols
     coords = grid.get_coords_list(cols, rows)
 
     # animation = None
-    if animation == 'linear':
+    if animation == "linear":
         animation_gen = linear_grid(coords, area)
-    elif animation == 'random':
+    elif animation == "random":
         animation_gen = random_grid(coords, area)
-    elif animation == 'snake':
+    elif animation == "snake":
         animation_gen = snake_grid(coords, area)
 
     for row, col in animation_gen:
         t = tiles[row][col]
-        t.grid(row=0, column=0, sticky='NSEW')
+        t.grid(row=0, column=0, sticky="NSEW")
         root.update()
         time.sleep(ANIMATION_TIME / area)
 

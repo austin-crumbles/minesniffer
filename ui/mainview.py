@@ -1,3 +1,4 @@
+from logic import gridtools
 from logic.timer import TimerState
 from tkinter import ttk
 from . import grid, menus, modals, style, sprite
@@ -14,7 +15,7 @@ class GameView():
         self.controller = controller
         self.root = root
         self.root.title("BombSniffer")
-        self.root.protocol('WM_DELETE_WINDOW', self.controller.quit_game)
+        self.root.protocol("WM_DELETE_WINDOW", self.controller.quit_game)
         # self.root.minsize(400, 500)
 
         # The board is created separately so that it can be refreshed between games
@@ -32,7 +33,7 @@ class GameView():
         self.interrupt_timer_update = False
 
         self.style = None
-        self.cell_size = self.controller.get_setting('cell_size')
+        self.cell_size = self.controller.get_setting("cell_size")
         self.mine_sprite = sprite.get_mine_sprite(self.cell_size)
         self.flag_sprite = sprite.get_flag_sprite(self.cell_size)
 
@@ -47,10 +48,10 @@ class GameView():
         self.root.resizable(False, False)
 
         # Some keyboard shortcuts
-        self.root.bind('<Control-n>', lambda e: self.controller.new_game())
-        self.root.bind('<Control-g>', lambda e: self.show_gridsize_modal())
-        self.root.bind('<Control-=>', lambda e: self.zoom_in())
-        self.root.bind('<Control-minus>', lambda e: self.zoom_out())
+        self.root.bind("<Control-n>", lambda e: self.controller.new_game())
+        self.root.bind("<Control-g>", lambda e: self.show_gridsize_modal())
+        self.root.bind("<Control-=>", lambda e: self.zoom_in())
+        self.root.bind("<Control-minus>", lambda e: self.zoom_out())
 
 
         self.root.rowconfigure(0, weight=1)
@@ -74,30 +75,30 @@ class GameView():
         minecount = ttk.Label(
             top_bar,
             text=0,
-            style='stats.TLabel',
-            anchor='center'
+            style="stats.TLabel",
+            anchor="center"
         )
         tilecount = ttk.Label(
             top_bar,
             text=0,
-            style='stats.TLabel',
-            anchor='center'
+            style="stats.TLabel",
+            anchor="center"
         )
         timer = ttk.Label(top_bar)
 
-        minecount.grid(row=0, column=0, ipadx=4, ipady=4, sticky='E')
+        minecount.grid(row=0, column=0, ipadx=4, ipady=4, sticky="E")
         reset.grid(row=0, column=1)
-        tilecount.grid(row=0, column=2, ipadx=4, ipady=4, sticky='W')
+        tilecount.grid(row=0, column=2, ipadx=4, ipady=4, sticky="W")
         timer.grid(row=1, column=1, pady=(10, 0))
-        top_bar.grid(row=0, column=0, pady=20, padx=20, sticky='NSEW')
+        top_bar.grid(row=0, column=0, pady=20, padx=20, sticky="NSEW")
 
         top_bar.columnconfigure(0, weight=1)
         top_bar.columnconfigure(1, weight=1)
         top_bar.columnconfigure(2, weight=1)
         top_bar.rowconfigure(0, weight=1)
-        top_bar.bind('<3>', lambda e: self.post_options_menu(e))
+        top_bar.bind("<3>", lambda e: self.post_options_menu(e))
 
-        timer.configure(style='timer.TLabel')
+        timer.configure(style="timer.TLabel")
 
         self.topbar_reset = reset
         self.topbar_minecount = minecount
@@ -105,8 +106,8 @@ class GameView():
         self.topbar_timer_display = timer
     
     def make_gridsize_modal(self):
-        widthvar = self.controller.settings['grid_width']
-        heightvar = self.controller.settings['grid_height']
+        widthvar = self.controller.settings["grid_width"]
+        heightvar = self.controller.settings["grid_height"]
         validation_func = self.controller.validate_dims
         modal = modals.make_gridsize_modal(self, widthvar, heightvar, validation_func)
         self.gridsize_modal = modal
@@ -119,7 +120,7 @@ class GameView():
         if self.grid_frame is not None and type(self.grid_frame) is ttk.Frame:
             self.grid_frame.destroy()
 
-        animation = self.controller.get_setting('grid_animation')
+        animation = self.controller.get_setting("grid_animation")
         grid_frame, grid_tiles = grid.make_gameboard(
             self.root,
             gameboard,
@@ -136,20 +137,20 @@ class GameView():
 
     def get_menu_funcs(self):
         funcs = {
-            'new_game': self.controller.new_game,
-            'show_gridsize_modal': self.show_gridsize_modal,
-            'zoom_in': self.zoom_in,
-            'zoom_out': self.zoom_out,
-            'stylize': self.stylize
+            "new_game": self.controller.new_game,
+            "show_gridsize_modal": self.show_gridsize_modal,
+            "zoom_in": self.zoom_in,
+            "zoom_out": self.zoom_out,
+            "stylize": self.stylize
         }
         return funcs
 
     def get_grid_funcs(self):
         funcs = {
-            'is_revealed': self.controller.is_revealed,
-            'quick_reveal': self.controller.quick_reveal,
-            'reveal': self.controller.reveal,
-            'flag': self.controller.flag        
+            "is_revealed": self.controller.is_revealed,
+            "quick_reveal": self.controller.quick_reveal,
+            "reveal": self.controller.reveal,
+            "flag": self.controller.flag        
         }
         return funcs
 
@@ -198,7 +199,7 @@ class GameView():
             pady=(0, 20),
             ipadx=10,
             ipady=10,
-            sticky='NSEW'
+            sticky="NSEW"
         )
 
     def hide_gridsize_modal(self):
@@ -210,7 +211,7 @@ class GameView():
         self.grid_frame.grid()
 
     def stylize(self):
-        theme = self.controller.get_setting('game_theme')
+        theme = self.controller.get_setting("game_theme")
         style.stylize(self.style, theme)
 
     def zoom_in(self):
@@ -228,10 +229,9 @@ class GameView():
         self.update_zoom()
 
     def update_zoom(self):
-        for tile in grid.flatten_grid(self.grid_tiles):
+        for tile in gridtools.flatten_list(self.grid_tiles):
             tile.master.configure(
                 width=self.cell_size,
                 height=self.cell_size
             )
-        self.controller.settings['cell_size'] = self.cell_size
-        # self.root.update()
+        self.controller.settings["cell_size"] = self.cell_size

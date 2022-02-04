@@ -5,11 +5,11 @@
             "type": "int"
         },
         "grid_width": {
-            "value": "10",
+            "value": "20",
             "type": "tkstr"
         },
         "grid_height": {
-            "value": "10",
+            "value": "20",
             "type": "tkstr"
         },
         "quick_reveal": {
@@ -21,7 +21,7 @@
             "type": "tkstr"
         },
         "game_theme": {
-            "value": "dark",
+            "value": "dark_blue",
             "type": "tkstr"
         },
         "save_settings_on_quit": {

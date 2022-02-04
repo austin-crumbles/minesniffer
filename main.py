@@ -3,13 +3,12 @@ import json
 import random
 import logging
 from tkinter import BooleanVar, StringVar, IntVar, Tk
-from ui.grid import flatten_grid
 from ui.mainview import GameView
 from logic.mainmodel import GameData
-from logic import secrets, GameState
+from logic import GameState, gridtools, secrets
 from typing import Union
 
-SETTINGS_PATH = './lib/settings.json'
+SETTINGS_PATH = "./lib/settings.json"
 MAX_DIM_SIZE = 70
 logging.basicConfig()
 
@@ -60,7 +59,7 @@ class Gameapp():
         logging.info(f"Starting new game")
         self.validate_dims()
         rows, cols = self.get_new_grid_dims()
-        difficulty = self.get_setting('difficulty')
+        difficulty = self.get_setting("difficulty")
         self.model.new_game(rows, cols, difficulty)
 
         self.view.make_gameboard()
@@ -72,8 +71,8 @@ class Gameapp():
         """
         validate = True
 
-        widthvar = self.settings['grid_width']
-        heightvar = self.settings['grid_height']
+        widthvar = self.settings["grid_width"]
+        heightvar = self.settings["grid_height"]
         try:
             width_units = int(widthvar.get())
         except ValueError:
@@ -94,10 +93,10 @@ class Gameapp():
         if height_units > MAX_DIM_SIZE:
             heightvar.set(MAX_DIM_SIZE)
             validate = False
-        if width_units == '' or width_units <= 0:
+        if width_units == "" or width_units <= 0:
             widthvar.set(10)
             validate = False
-        if height_units == '' or height_units <= 0:
+        if height_units == "" or height_units <= 0:
             heightvar.set(10)
             validate = False
 
@@ -110,8 +109,8 @@ class Gameapp():
         the current grid, for instance, if the user has changed the grid dimensions
         but has not yet asked for a new game.)
         """
-        rows = int(self.get_setting('grid_height'))
-        cols = int(self.get_setting('grid_width'))
+        rows = int(self.get_setting("grid_height"))
+        cols = int(self.get_setting("grid_width"))
         return (rows, cols)
 
     def get_num_remaining_cells(self):
@@ -137,7 +136,7 @@ class Gameapp():
         Return the value of the `is_revealed` key of the cell located at `(row, col)`
         """
         cell = self.get_gameboard()[row][col]
-        return cell['is_revealed']
+        return cell["is_revealed"]
 
     def flag(self, row, col):
         """
@@ -163,8 +162,9 @@ class Gameapp():
         """
         if self.model.game_state in [GameState.LOSE, GameState.WIN]:
             return
-
-        self.model.start_timer()
+        elif self.model.game_state is GameState.IDLE:
+            self.model.check_first_move(row, col)
+            self.model.start_timer()
 
         state = secrets.reveal(self.get_gameboard(), row, col, self.tile_updates)
         self.update_gamestate(state)
@@ -177,7 +177,7 @@ class Gameapp():
             return
         if self.is_revealed(row, col) is False:
             return
-        if num_clicks != self.get_setting('quick_reveal'):
+        if num_clicks != self.get_setting("quick_reveal"):
             return
 
         state = secrets.quick_reveal(self.get_gameboard(), row, col, self.tile_updates)
@@ -244,7 +244,7 @@ class Gameapp():
         logging.info("Game over!", text)
 
     def quit_game(self):
-        save_settings(self.settings, self.get_setting('save_settings_on_quit'))
+        save_settings(self.settings, self.get_setting("save_settings_on_quit"))
         self.model.stop_timer()
         self.root.destroy()
 
@@ -256,25 +256,25 @@ def load_settings():
     """
     Load the settings json file
     """
-    with open(SETTINGS_PATH, 'r') as f:
+    with open(SETTINGS_PATH, "r") as f:
         json_dict = json.load(f)
 
     game_settings = {}
     # Need to make some settings a Tk variable so that
     # the information is available to the UI
-    for s in json_dict['user']:
-        setting = json_dict['user'][s]
-        if setting['type'] == 'tkint':
-            game_settings[s] = IntVar(value=setting['value'])
+    for s in json_dict["user"]:
+        setting = json_dict["user"][s]
+        if setting["type"] == "tkint":
+            game_settings[s] = IntVar(value=setting["value"])
             continue
-        elif setting['type'] == 'tkstr':
-            game_settings[s] = StringVar(value=setting['value'])
+        elif setting["type"] == "tkstr":
+            game_settings[s] = StringVar(value=setting["value"])
             continue
-        elif setting['type'] == 'tkbool':
-            game_settings[s] = BooleanVar(value=setting['value'])
+        elif setting["type"] == "tkbool":
+            game_settings[s] = BooleanVar(value=setting["value"])
             continue
         else:
-            game_settings[s] = setting['value']
+            game_settings[s] = setting["value"]
 
     return game_settings
 
@@ -295,20 +295,20 @@ def save_settings(settings, save_default=False):
     for key in settings:
         val = settings[key]
         if type(val) == StringVar:
-            stype = 'tkstr'
+            stype = "tkstr"
             val = val.get()
         elif type(val) == IntVar:
-            stype = 'tkint'
+            stype = "tkint"
             val = val.get()
         elif type(val) == BooleanVar:
-            stype = 'tkbool'
+            stype = "tkbool"
             val = val.get()
         elif type(val) == int:
-            stype = 'int'
+            stype = "int"
 
         json_dict[key] = {
-            'value': val,
-            'type': stype
+            "value": val,
+            "type": stype
         }
 
     # If something goes awry, abort before writing to file to avoid
@@ -318,9 +318,9 @@ def save_settings(settings, save_default=False):
     except TypeError:
         logging.error("Couldn't save settings. Sorry!")
     else:
-        with open(SETTINGS_PATH, 'r+') as fp:
+        with open(SETTINGS_PATH, "r+") as fp:
             data = json.load(fp)
-            data['user'] = json_dict
+            data["user"] = json_dict
             fp.seek(0)
             fp.truncate()
             json.dump(data, fp, indent=4)
@@ -331,9 +331,9 @@ def save_default_settings():
     Copy the default settings into the user settings segment of the
     settings json file.
     """
-    with open(SETTINGS_PATH, 'r+') as fp:
+    with open(SETTINGS_PATH, "r+") as fp:
         json_dict = json.load(fp)
-        json_dict['user'] = json_dict['default']
+        json_dict["user"] = json_dict["default"]
         fp.seek(0)
         fp.truncate()
         json.dump(json_dict, fp, indent=4)
@@ -343,7 +343,7 @@ def get_random_text(section) -> str:
     """
     Return a random phrase from the `section` of the phrases document.
     """
-    with open('./lib/phrases.json', 'r') as f:
+    with open("./lib/phrases.json", "r") as f:
         phrases = json.load(f)
 
     return random.choice(phrases[section])
@@ -354,5 +354,5 @@ def main():
     game.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
