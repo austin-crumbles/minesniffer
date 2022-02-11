@@ -2,6 +2,7 @@ from logic import gridtools
 from logic.timer import TimerState
 from tkinter import ttk
 from . import grid, menus, modals, style, sprite
+from .attributes import FuncAttributes
 
 QUICK_REVEAL_LABELS = ["Off", "Single-Click", "Double-Click"]
 
@@ -121,12 +122,13 @@ class GameView():
             self.grid_frame.destroy()
 
         animation = self.controller.get_setting("grid_animation")
+        functions = FuncAttributes(self.get_grid_funcs())
         grid_frame, grid_tiles = grid.make_gameboard(
             self.root,
             gameboard,
             self.cell_size,
             animation,
-            self.controller
+            functions
         )
 
         self.grid_frame = grid_frame
@@ -134,6 +136,8 @@ class GameView():
 
         self.update_minecount()
         self.update_tilecount()
+
+        self.root.update()
 
     def get_menu_funcs(self):
         funcs = {

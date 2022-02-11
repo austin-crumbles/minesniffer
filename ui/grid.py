@@ -2,9 +2,10 @@ from tkinter import ttk
 from threading import Thread
 from logic import gridtools
 from . import animate
+from .attributes import FuncAttributes
 
 
-def make_gameboard(root, gameboard_data, cell_size, animation, controller):
+def make_gameboard(root, gameboard_data, cell_size, animation, functions: FuncAttributes):
     main = ttk.Frame(
         root,
         borderwidth=3,
@@ -25,7 +26,7 @@ def make_gameboard(root, gameboard_data, cell_size, animation, controller):
             tile = make_tile(container)
 
             # Callbacks to main.py for interaction events
-            tile_bindings(tile, controller, coords)
+            tile_bindings(tile, functions, coords)
 
             # If there is no animation, grid everything here. Otherwise,
             # it will be gridded when the function returns
@@ -88,7 +89,7 @@ def make_tile(root) -> ttk.Label:
     return tile
 
 
-def tile_bindings(tile, controller, coords):
+def tile_bindings(tile, functions, coords):
     # Bind both single and double click to the quick_reveal function, so that
     # the user can change quick reveal settings during a game in progress
     row, col = coords
@@ -96,13 +97,13 @@ def tile_bindings(tile, controller, coords):
     def click_func(event):
         if event == "<Button-1>":
             if tile.is_revealed is True:
-                controller.quick_reveal(row, col, 1)
+                functions.get_value("quick_reveal", row, col, 1)
             else:
-                controller.reveal(row, col)
+                functions.get_value("reveal", row, col)
         elif event == "<Double-Button-1>" and tile.is_revealed is True:
-            controller.quick_reveal(row, col, 2)
+            functions.get_value("quick_reveal", row, col, 2)
         elif event == "<Button-2>" and tile.is_revealed is False:
-            controller.flag(row, col)
+            functions.get_value("flag", row, col)
 
     def hover_func(event):
         if tile.is_revealed is True:
@@ -165,14 +166,6 @@ def update_grid(tile_updates, widgets, minesprite, flagsprite):
 
     tile_updates = []
 
-
-# def flatten_grid(two_dim_list):
-#     """
-#     Get inner items of a 2D list
-#     """
-#     for row in two_dim_list:
-#         for item in row:
-#             yield item
 
 def get_coords_list(width, height):
     """
