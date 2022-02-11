@@ -20,17 +20,11 @@ class Attributes():
         self.attrs = attrs
         self.default = default
 
-    def get_obj(self, key):
+    def _get_obj(self, key):
         if key in self.attrs:
             return self.attrs[key]
         else:
             return self._get_default(key)
-
-    def get_value(self):
-        raise NotImplementedError
-
-    def _get_default(self):
-        raise NotImplementedError
 
 
 class FuncAttributes(Attributes):
@@ -41,8 +35,11 @@ class FuncAttributes(Attributes):
         """
         super().__init__(attrs, default)
 
-    def get_value(self, key, *args, **kwargs):
-        func = self.get_obj(key)
+    def get_func_obj(self, key):
+        return self._get_obj(key)
+
+    def exec(self, key, *args, **kwargs):
+        func = self._get_obj(key)
         return func(*args, **kwargs)
 
     def _get_default(self, key):
@@ -61,9 +58,12 @@ class VarAttributes(Attributes):
         """
         super().__init__(attrs, default)
 
+    def get_var_obj(self, key):
+        return self._get_obj(key)
+
     def get_value(self, key):
-        val = self.get_obj(key)
-        if issubclass(val, tk.Variable):
+        val = self._get_obj(key)
+        if issubclass(type(val), tk.Variable):
             val = val.get()
         return val
 

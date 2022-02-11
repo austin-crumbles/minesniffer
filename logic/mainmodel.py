@@ -141,6 +141,10 @@ class GameData:
     def start_timer(self):
         if self.timer is None:
             return None
+        
+        # `start` is used to start the thread that the timer is attatched
+        # to, so we have to hide it behind a failsafe, otherwise the Thread
+        # will throw an error whenever this function is called.
         if self.timer.state == TimerState.IDLE:
             self.timer.start()
             return self.get_timer_state()
@@ -148,23 +152,20 @@ class GameData:
     def pause_timer(self):
         if self.timer is None:
             return None
-        if self.timer.state == TimerState.RUNNING:
-            self.timer.pause()
-            return self.get_timer_state()
+        self.timer.pause()
+        return self.get_timer_state()
 
     def resume_timer(self):
         if self.timer is None:
             return None
-        if self.timer.state == TimerState.PAUSED:
-            self.timer.resume()
-            return self.get_timer_state()
+        self.timer.resume()
+        return self.get_timer_state()
 
     def stop_timer(self):
         if self.timer is None:
             return None
-        if self.timer.state == TimerState.RUNNING:
-            self.timer.stop()
-            return self.get_timer_state()
+        self.timer.stop()
+        return self.get_timer_state()
     
     def get_timer_state(self):
         return self.timer.state

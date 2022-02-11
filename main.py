@@ -2,11 +2,12 @@
 import json
 import random
 import logging
+from typing import Union
 from tkinter import BooleanVar, StringVar, IntVar, Tk
 from ui.mainview import GameView
+from ui.attributes import FuncAttributes, VarAttributes
 from logic.mainmodel import GameData
-from logic import GameState, gridtools, secrets
-from typing import Union
+from logic import GameState, secrets
 
 SETTINGS_PATH = "./lib/settings.json"
 MAX_DIM_SIZE = 70
@@ -23,7 +24,10 @@ class Gameapp():
         # Must load settings first, becuase model and view depend on them
         self.settings = load_settings()
         self.model = GameData(timer_callback=self.update_timer)
-        self.view = GameView(self, self.root)
+
+        functions = self.get_callback_funcs()
+        settings = self.get_setting_vars()
+        self.view = GameView(functions, settings, self.root)
 
         self.tile_updates = []
 
@@ -37,9 +41,6 @@ class Gameapp():
             return self.settings[setting].get()
         else:
             return self.settings[setting]
-
-    def get_setting_vars(self):
-        return self.settings.copy()
 
     def new_game(self) -> None:
         """
@@ -250,6 +251,25 @@ class Gameapp():
 
     def run(self):
         self.root.mainloop()
+
+    def get_callback_funcs(self):
+        funcs = {
+            "flag": self.flag,
+            "get_gameboard": self.get_gameboard,
+            "get_num_mines": self.get_num_mines,
+            "get_num_remaining_cells": self.get_num_remaining_cells,
+            "new_game": self.new_game,
+            "pause_timer": self.pause_timer,
+            "quick_reveal": self.quick_reveal,
+            "quit_game": self.quit_game,
+            "resume_timer": self.resume_timer,
+            "reveal": self.reveal,
+            "validate_dims": self.validate_dims
+        }
+        return FuncAttributes(funcs)
+
+    def get_setting_vars(self):
+        return VarAttributes(self.settings)
 
 
 def load_settings():

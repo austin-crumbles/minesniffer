@@ -97,13 +97,13 @@ def tile_bindings(tile, functions, coords):
     def click_func(event):
         if event == "<Button-1>":
             if tile.is_revealed is True:
-                functions.get_value("quick_reveal", row, col, 1)
+                functions.exec("quick_reveal", row, col, 1)
             else:
-                functions.get_value("reveal", row, col)
+                functions.exec("reveal", row, col)
         elif event == "<Double-Button-1>" and tile.is_revealed is True:
-            functions.get_value("quick_reveal", row, col, 2)
+            functions.exec("quick_reveal", row, col, 2)
         elif event == "<Button-2>" and tile.is_revealed is False:
-            functions.get_value("flag", row, col)
+            functions.exec("flag", row, col)
 
     def hover_func(event):
         if tile.is_revealed is True:

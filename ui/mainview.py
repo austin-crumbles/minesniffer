@@ -12,12 +12,12 @@ class GameView():
     Creates the main TK window for the game
     """
 
-    def __init__(self, controller, root):
-        self.controller = controller
+    def __init__(self, functions, settings, root):
+        self.functions = functions
+        self.settings = settings
         self.root = root
-        self.root.title("BombSniffer")
-        self.root.protocol("WM_DELETE_WINDOW", self.controller.quit_game)
-        # self.root.minsize(400, 500)
+        self.root.title("MineSniffer")
+        self.root.protocol("WM_DELETE_WINDOW", self.functions.get_func_obj("quit_game"))
 
         # The board is created separately so that it can be refreshed between games
         self.grid_frame = None
@@ -34,7 +34,7 @@ class GameView():
         self.interrupt_timer_update = False
 
         self.style = None
-        self.cell_size = self.controller.get_setting("cell_size")
+        self.cell_size = self.settings.get_value("cell_size")
         self.mine_sprite = sprite.get_mine_sprite(self.cell_size)
         self.flag_sprite = sprite.get_flag_sprite(self.cell_size)
 
@@ -49,7 +49,7 @@ class GameView():
         self.root.resizable(False, False)
 
         # Some keyboard shortcuts
-        self.root.bind("<Control-n>", lambda e: self.controller.new_game())
+        self.root.bind("<Control-n>", lambda e: self.functions.exec("new_game"))
         self.root.bind("<Control-g>", lambda e: self.show_gridsize_modal())
         self.root.bind("<Control-=>", lambda e: self.zoom_in())
         self.root.bind("<Control-minus>", lambda e: self.zoom_out())
@@ -62,16 +62,16 @@ class GameView():
         self.style = style.make_style(self.root)
 
     def make_menus(self):
-        settings = self.controller.get_setting_vars()
+        # Combine local funcs with funcs from the controller
         funcs = self.get_menu_funcs()
-        menus.make_options_menus(self.root, settings, funcs)
+        menus.make_options_menus(self.root, self.settings, funcs)
 
     def make_topbar(self):
         top_bar = ttk.Frame(self.root)
         reset = ttk.Button(
             top_bar,
             text="BombSniffer",
-            command=self.controller.new_game
+            command=self.functions.get_func_obj("new_game")
         )
         minecount = ttk.Label(
             top_bar,
@@ -107,9 +107,9 @@ class GameView():
         self.topbar_timer_display = timer
     
     def make_gridsize_modal(self):
-        widthvar = self.controller.settings["grid_width"]
-        heightvar = self.controller.settings["grid_height"]
-        validation_func = self.controller.validate_dims
+        widthvar = self.settings.get_var_obj("grid_width")
+        heightvar = self.settings.get_var_obj("grid_height")
+        validation_func = self.functions.get_func_obj("validate_dims")
         modal = modals.make_gridsize_modal(self, widthvar, heightvar, validation_func)
         self.gridsize_modal = modal
 
@@ -117,18 +117,18 @@ class GameView():
         """
         Create the board ui
         """
-        gameboard = self.controller.get_gameboard()
+        gameboard = self.functions.exec("get_gameboard")
         if self.grid_frame is not None and type(self.grid_frame) is ttk.Frame:
             self.grid_frame.destroy()
 
-        animation = self.controller.get_setting("grid_animation")
-        functions = FuncAttributes(self.get_grid_funcs())
+        animation = self.settings.get_value("grid_animation")
+        # functions = FuncAttributes(self.get_grid_funcs())
         grid_frame, grid_tiles = grid.make_gameboard(
             self.root,
             gameboard,
             self.cell_size,
             animation,
-            functions
+            self.functions
         )
 
         self.grid_frame = grid_frame
@@ -141,22 +141,22 @@ class GameView():
 
     def get_menu_funcs(self):
         funcs = {
-            "new_game": self.controller.new_game,
+            "new_game": self.functions.get_func_obj("new_game"),
             "show_gridsize_modal": self.show_gridsize_modal,
             "zoom_in": self.zoom_in,
             "zoom_out": self.zoom_out,
             "stylize": self.stylize
         }
-        return funcs
+        return FuncAttributes(funcs)
 
-    def get_grid_funcs(self):
-        funcs = {
-            "is_revealed": self.controller.is_revealed,
-            "quick_reveal": self.controller.quick_reveal,
-            "reveal": self.controller.reveal,
-            "flag": self.controller.flag        
-        }
-        return funcs
+    # def get_grid_funcs(self):
+    #     funcs = {
+    #         "is_revealed": self.functions.get_func_obj("is_revealed"),
+    #         "quick_reveal": self.functions.get_func_obj("quick_reveal"),
+    #         "reveal": self.functions.get_func_obj("reveal"),
+    #         "flag": self.functions.get_func_obj("flag")        
+    #     }
+    #     return funcs
 
     def update_grid(self, tile_updates):
         grid.update_grid(
@@ -173,11 +173,11 @@ class GameView():
         self.topbar_timer_display.configure(text=timestr)
 
     def update_tilecount(self):
-        tilecount = self.controller.get_num_remaining_cells()
+        tilecount = self.functions.exec("get_num_remaining_cells") 
         self.topbar_tilecount.configure(text=tilecount)
 
     def update_minecount(self):
-        minecount = self.controller.get_num_mines()
+        minecount = self.functions.exec("get_num_mines")
         self.topbar_minecount.configure(text=minecount)
 
     def show_gameover_alert(self, text):
@@ -187,7 +187,7 @@ class GameView():
         self.topbar_reset.configure(text="BombSniffer")
 
     def show_gridsize_modal(self):
-        paused = self.controller.pause_timer()
+        paused = self.functions.exec("pause_timer")
         if paused is TimerState.PAUSED:
             self.topbar_timer_display.configure(text="Paused")
         self.interrupt_timer_update = True
@@ -209,13 +209,13 @@ class GameView():
     def hide_gridsize_modal(self):
         if self.gridsize_modal is None:
             return
-        self.controller.resume_timer()
+        self.functions.exec("resume_timer")
         self.interrupt_timer_update = False
         self.gridsize_modal.grid_remove()
         self.grid_frame.grid()
 
     def stylize(self):
-        theme = self.controller.get_setting("game_theme")
+        theme = self.settings.get_value("game_theme")
         style.stylize(self.style, theme)
 
     def zoom_in(self):
@@ -238,4 +238,4 @@ class GameView():
                 width=self.cell_size,
                 height=self.cell_size
             )
-        self.controller.settings["cell_size"] = self.cell_size
+        self.settings.set_val("cell_size", self.cell_size)
