@@ -6,36 +6,45 @@ from .attributes import FuncAttributes
 
 
 def make_gameboard(root, gameboard_data, cell_size, animation, functions: FuncAttributes):
+    """
+    Create the visual gameboard using the `gameboard_data` supplied by the controller.
+    """
+    # The main housing for the grid
     main = ttk.Frame(
         root,
         borderwidth=3,
         relief="sunken"
     )
-    # Keeping track of all the widgets on the board
+    # Keeping track of all the tiles on the board, so that we can update them later.
+    # Essentially a mirror gameboard, but for tile references instead of cell data.
     tiles_list = []
 
     for row in gameboard_data:
-        # Creating a mirror gameboard, but for widget data
         tiles_list_row = []
-        tile_row_frame = ttk.Frame(main)
+
+        # Break down the main widget into separate rows so that TKinter can have an
+        # easier time keeping track of all the widgets going into the grid. Without it,
+        # larger grid sizes significantly slow down the program.
+        main_row = ttk.Frame(main)
         for cell in row:
             coords = cell["coords"]
 
-            # Container makes the width consistent
-            container = make_container(tile_row_frame, cell_size)
+            # Container makes the width of the tiles consistent
+            container = make_container(main_row, cell_size)
             tile = make_tile(container)
 
-            # Callbacks to main.py for interaction events
+            # Callbacks to the controller for interaction events
             tile_bindings(tile, functions, coords)
 
             # If there is no animation, grid everything here. Otherwise,
-            # it will be gridded when the function returns
+            # the animate module will take care of the gridding.
             if animation == "none":
-                # Animate will take care of gridding these later
                 tile.grid(row=0, column=0, sticky="NSEW")
 
+            # Each `main_row` takes care of remembering its own respective
+            # columns (containers, which in turn each contain a single tile).
             container.grid(row=0, column=cell["coords"][1])
-            tile_row_frame.grid(row=cell["coords"][0], column=0)
+            main_row.grid(row=cell["coords"][0], column=0)
 
             tiles_list_row.append(tile)
         tiles_list.append(tiles_list_row)
@@ -47,6 +56,7 @@ def make_gameboard(root, gameboard_data, cell_size, animation, functions: FuncAt
         pady=(0, 20)
     )
 
+    # If the tiles were not gridded above, grid them now... fancier.
     if animation != "none":
         animate.animate_on(tiles_list, root, animation)
 
@@ -55,18 +65,13 @@ def make_gameboard(root, gameboard_data, cell_size, animation, functions: FuncAt
 
 def make_container(root, cell_size) -> ttk.Frame:
     """
-    Create the tile container, which contains both the button tile and the
-    mine clue underneath.
-
-    Note: Might not use this container if I can get the tile and clue to grid
-    without it
+    Create the tile container, which contains acts as a fence for the tile.
     """
     container = ttk.Frame(root)
     container.configure(
         width=cell_size,
         height=cell_size,
-        borderwidth=0,
-        relief="solid"
+        borderwidth=0
     )
     container.grid_propagate(0)
     container.columnconfigure(0, weight=1)
@@ -77,35 +82,39 @@ def make_container(root, cell_size) -> ttk.Frame:
 
 def make_tile(root) -> ttk.Label:
     """
-    Gameboard cells which are clickable, and reveal the number of adjacent mines
+    Gameboard tiles which are clickable, flaggable, and reveal the number of 
+    adjacent mines or an active mine.
     """
-    tile = GridTile(root)
-    tile.configure(
-        anchor="center",
-        text="",
-        style="secret.tile.TLabel"
-    )
-
-    return tile
+    return GridTile(root)
 
 
 def tile_bindings(tile, functions, coords):
-    # Bind both single and double click to the quick_reveal function, so that
-    # the user can change quick reveal settings during a game in progress
+    """
+    Bind callback functions to the grid tiles.
+    """
+    
     row, col = coords
 
     def click_func(event):
+        """
+        Defines the context for which function to call on a tile click
+        """
+        # Bind both single and double click to the quick_reveal function, so that
+        # the user can change quick reveal settings during a game in progress
         if event == "<Button-1>":
-            if tile.is_revealed is True:
-                functions.exec("quick_reveal", row, col, 1)
-            else:
+            if tile.is_revealed is False:
                 functions.exec("reveal", row, col)
+            else:
+                functions.exec("quick_reveal", row, col, 1)
         elif event == "<Double-Button-1>" and tile.is_revealed is True:
             functions.exec("quick_reveal", row, col, 2)
         elif event == "<Button-2>" and tile.is_revealed is False:
             functions.exec("flag", row, col)
 
     def hover_func(event):
+        """
+        Defines the context for which style to change to if a tile is hovered over.
+        """
         if tile.is_revealed is True:
             return
         if event == "<Enter>":
@@ -136,6 +145,10 @@ def tile_bindings(tile, functions, coords):
 
 
 def update_grid(tile_updates, widgets, minesprite, flagsprite):
+    """
+    Main grid updater. `tile_updates` should be a minimized list containing only
+    cell references that have been updated since the last execution of this function.
+    """
     for data_cell in tile_updates:
         coord_row = data_cell["coords"][0]
         cood_col = data_cell["coords"][1]
@@ -143,10 +156,14 @@ def update_grid(tile_updates, widgets, minesprite, flagsprite):
 
         if tile.is_revealed is True:
             continue
+
+        # Toggle the flag icon
         if data_cell["is_flagged"] is True:
             tile.configure(image=flagsprite)
         else:
             tile.configure(image="")
+        
+        # Nothing else to do if the cell has not been marked as revealed
         if data_cell["is_revealed"] is False:
             continue
 
@@ -162,42 +179,25 @@ def update_grid(tile_updates, widgets, minesprite, flagsprite):
         elif hint == "":
             tile.configure(style="revealed.tile.TLabel")
         else:
+            # Assign the style corresponding the the numeric hint. Each numeric
+            # hint has a separate color.
             tile.configure(style=f"{hint}.revealed.tile.TLabel")
 
+    # Clear out tile updates when all is said and done.
     tile_updates = []
 
 
-def get_coords_list(width, height):
-    """
-    Returns a 1-dimensional list of all the cell coords in the grid.
-    """
-    grid = []
-    for row in range(width):
-        for col in range(height):
-            grid.append((row, col))
-
-    return grid
-
-
 class GridTile(ttk.Label):
+    """
+    Small subclass of ttk.Label that adds the ability to track
+    if it has been revealed. Avoids a function call back to the 
+    controller.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.is_revealed = False
-
-
-class Gridder(Thread):
-    def __init__(self):
-        super().__init__()
-
-    def run(self, widgets):
-        rows = len(widgets)
-        cols = len(widgets[0])
-        tiles = list(gridtools.flatten_list(widgets))
-        coords = get_coords_list(width=cols, height=rows)
-
-        for n, t in enumerate(tiles):
-            container = t.master
-            row = container.master
-            t.grid(row=0, column=0, sticky="NSEW")
-            container.grid(row=0, column=coords[n][1])
-            row.grid(row=coords[n][0], column=0)
+        self.configure(
+            anchor="center",
+            text="",
+            style="secret.tile.TLabel"
+        )

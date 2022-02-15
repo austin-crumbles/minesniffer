@@ -142,9 +142,9 @@ class GameData:
         if self.timer is None:
             return None
         
-        # `start` is used to start the thread that the timer is attatched
-        # to, so we have to hide it behind a failsafe, otherwise the Thread
-        # will throw an error whenever this function is called.
+        # `timer.start` is used to start the actual thread that the timer is 
+        # attatched to, so we have to hide it behind a failsafe, otherwise the 
+        # Thread will throw an error whenever this function is called.
         if self.timer.state == TimerState.IDLE:
             self.timer.start()
             return self.get_timer_state()
@@ -179,22 +179,17 @@ class GameData:
         cell = self.gameboard[row][col]
         if cell["hint"] != "M":
             return
-
         old_neighbors = self.calc_clues(*cell["coords"], operation="subtract")
+
         # Recalculate the hint based on the number of mines that surrounded the previous
         # location of the mine.
         surrounding_mines = len([m for m in old_neighbors if m["hint"] == "M"])
         if surrounding_mines == 0:
             surrounding_mines = None
+
         # Wait until after calculating clues to change the hint becuase clues are calculated
         # based on whether the provided cell is a mine or not
         cell["hint"] = surrounding_mines
-
-        # Keep track of the tiles that need to be updated. Originally needed this for testing,
-        # but since the game should never have to update the actual on-screen tiles, this line
-        # is not necessary
-        # tile_updates = [cell]
-        # tile_updates.extend(old_neighbors)
 
         # Grab a random cell that doesn't already contain a mine, and isn't at the same
         # coords as the previous mine
@@ -202,14 +197,10 @@ class GameData:
         for c in gridtools.flatten_list(self.gameboard):
             if c["hint"] != "M" and c["coords"] != cell["coords"]:
                 other_cells.append(c)
-
         new_mine = random.choice(other_cells)
-        # Need to change the hint before calculating clues, for the same reason as above
+
+        # Need to change the hint before calculating clues, for the inverse reason as above
         new_mine["hint"] = "M"
-        new_neighbors = self.calc_clues(*new_mine["coords"])
 
-        # See comment above 
-        # tile_updates.append(new_mine)
-        # tile_updates.extend(new_neighbors)
-
-        # return tile_updates
+        # Calculate the clues of the tiles that surround the new mine location
+        self.calc_clues(*new_mine["coords"])

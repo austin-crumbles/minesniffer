@@ -9,10 +9,13 @@ class TimerState():
 
 class GameTimer(threading.Thread):
     """
-    Creates a non-reusable timer that counts upward
+    Creates a non-reusable timer that counts upward.
     """
 
     def __init__(self, callback_func) -> None:
+        """
+        Supply a callback_func for the timer to report its time.
+        """
         super().__init__()
         self.callback_func = callback_func
         self.time = 0
@@ -24,26 +27,41 @@ class GameTimer(threading.Thread):
 
     def run(self) -> None:
         """
-        Used by the threadding Thread to count upward
+        Main thread action triggered by `self.start()` which starts a timer
+        that counts upward. The timer reports its time using `self.callback()`.
         """
+
+        # Activate an endless while loop
         self.state = TimerState.RUNNING
 
         while self.state in [TimerState.RUNNING, TimerState.PAUSED]:
             sleep(1)
+
+            # If paused, the Timer continues to run on the thead, 
+            # but does not keep track of the time
             if self.state != TimerState.PAUSED:
                 self.time += 1
                 self.calc()
                 self.callback()
 
     def stop(self) -> None:
+        """
+        Stop the timer. `stop()` can only be called if `self.state` is `IDLE`.
+        """
         if self.state != TimerState.IDLE:
             self.state = TimerState.STOPPED
 
     def pause(self):
+        """
+        Pause the timer. `pause()` can only be called if `self.state` is `RUNNING`.
+        """
         if self.state == TimerState.RUNNING:
             self.state = TimerState.PAUSED
 
     def resume(self):
+        """
+        Resume the timer. `resume()` can only be called if `self.state` is `PAUSED`.
+        """
         if self.state == TimerState.PAUSED:
             self.state = TimerState.RUNNING
 
@@ -68,7 +86,8 @@ class GameTimer(threading.Thread):
     def callback(self):
         """
         Pass the time string as an argument to the callback function supplied
-        to the constructor.
+        to the constructor. If the timer is stopped, or no callback function
+        was supplied, do nothing.
         """
         if self.state == TimerState.STOPPED or self.callback_func is None:
             return

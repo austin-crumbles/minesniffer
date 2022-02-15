@@ -10,6 +10,9 @@ def get_flag_sprite(cell_size):
     return load_sprite(path, cell_size)
 
 def load_sprite(path, cell_size):
+    """
+    Load the sprite from the given path using the given cell_size.
+    """
     sprite = Image.open(path)
     sprite = sprite.resize((cell_size, cell_size))
     sprite = ImageTk.PhotoImage(sprite)

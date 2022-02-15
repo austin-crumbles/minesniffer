@@ -2,6 +2,9 @@ from tkinter import ttk
 import logging
 
 def make_gridsize_modal(parent, widthvar, heightvar, validation_func):
+    """
+    Create the modal used to change grid size
+    """
     root = parent.root
     frame = ttk.Frame(root, style="modal.TFrame")
     disclaim_text = ttk.Label(
@@ -64,4 +67,7 @@ def make_gridsize_modal(parent, widthvar, heightvar, validation_func):
     return frame
 
 def invalid():
+    """
+    Invalid values callback for validating grid size input.
+    """
     logging.warn("Invalid dimensions")
