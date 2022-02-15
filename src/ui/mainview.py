@@ -239,4 +239,4 @@ class GameView():
                 width=self.cell_size,
                 height=self.cell_size
             )
-        self.settings.set_val("cell_size", self.cell_size)
+        self.settings.set_value("cell_size", self.cell_size)
