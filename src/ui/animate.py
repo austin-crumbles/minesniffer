@@ -13,11 +13,11 @@ def animate_on(tiles, root, animation="linear"):
 
     # animation = None
     if animation == "linear":
-        animation_gen = linear_grid(coords, area)
+        animation_gen = linear_grid(coords)
     elif animation == "random":
-        animation_gen = random_grid(coords, area)
+        animation_gen = random_grid(coords)
     elif animation == "snake":
-        animation_gen = snake_grid(coords, area)
+        animation_gen = snake_grid(coords)
 
     for row, col in animation_gen:
         t = tiles[row][col]
@@ -25,7 +25,7 @@ def animate_on(tiles, root, animation="linear"):
         root.update()
         time.sleep(ANIMATION_TIME / area)
 
-def linear_grid(coords_list, area):
+def linear_grid(coords_list):
     for cell in coords_list:
         row, col = cell
         yield row, col

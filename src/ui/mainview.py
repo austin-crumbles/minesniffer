@@ -1,3 +1,4 @@
+import tkinter as tk
 from logic import gridtools
 from logic.timer import TimerState
 from tkinter import ttk

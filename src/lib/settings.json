@@ -33,7 +33,7 @@
             "type": "int"
         },
         "grid_animation": {
-            "value": "none",
+            "value": "snake",
             "type": "tkstr"
         }
     },

@@ -2,6 +2,7 @@
 import json
 import random
 import logging
+import os
 from typing import Union
 from tkinter import BooleanVar, StringVar, IntVar, Tk
 from ui.mainview import GameView
@@ -9,9 +10,19 @@ from ui.attributes import FuncAttributes, VarAttributes
 from logic.mainmodel import GameData
 from logic import GameState, secrets
 
-SETTINGS_PATH = "./lib/settings.json"
+USER_PATH = os.path.expanduser('~')
+APPSUPPORT_PATH = f"{USER_PATH}/Library/Application Support/CrumblesApps/Minesniffer"
+SETTINGS_PATH = f"{APPSUPPORT_PATH}/settings.json"
+
 MAX_DIM_SIZE = 70
 logging.basicConfig()
+
+
+def setup():
+    logging.info("Creating App Support folder.")
+    import shutil
+    os.makedirs(APPSUPPORT_PATH)
+    shutil.copy('./lib/settings.json', SETTINGS_PATH)
 
 
 class Gameapp():
@@ -375,4 +386,16 @@ def main():
 
 
 if __name__ == "__main__":
+    import sys
+
+    # Check if the app is running from source or from a bundled app
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        import os
+        os.chdir(sys._MEIPASS)
+
+    # Install the settings file into the App Support folder if it isn't installed
+    if not os.path.isdir(APPSUPPORT_PATH):
+        setup()
+
     main()
+    
