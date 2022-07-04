@@ -1,10 +1,8 @@
-import tkinter as tk
 from logic import gridtools
 from logic.timer import TimerState
 from tkinter import ttk
 from . import grid, menus, modals, style, sprite
 from .attributes import FuncAttributes
-from ui import attributes
 
 
 class GameView():
@@ -22,8 +20,8 @@ class GameView():
             self.functions.get_func_obj("quit_game")
         )
 
-         # Tk widgets to make. Note that the gmae board is created separately so that
-         # it can be refreshed between games
+        # Tk widgets to make. Note that the gmae board is created separately so that
+        # it can be refreshed between games
         self.grid_frame = None
         self.topbar_reset = None
         self.topbar_minecount = None

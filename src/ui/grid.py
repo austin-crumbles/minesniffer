@@ -1,6 +1,4 @@
 from tkinter import ttk
-from threading import Thread
-from logic import gridtools
 from . import animate
 from .attributes import FuncAttributes
 
@@ -56,7 +54,7 @@ def make_gameboard(root, gameboard_data, cell_size, animation, functions: FuncAt
         pady=(0, 20)
     )
 
-    # If the tiles were not gridded above, grid them now... fancier.
+    # If the tiles were not gridded above, grid them now... but fancier.
     if animation != "none":
         animate.animate_on(tiles_list, root, animation)
 

@@ -23,6 +23,7 @@ def animate_on(tiles, root, animation="linear"):
     area = rows * cols
     coords = gridtools.get_coords_list(cols, rows)
 
+    # A generator that yields each block in the pattern.
     if animation == "linear":
         animation_gen = linear_grid(coords)
     elif animation == "random":
@@ -83,11 +84,11 @@ def snake_grid(coords_list):
 
         except IndexError:
             # If an IndexError has occured, then it is time to change the operation.
-            # First, reverse the previous operation.
+            # First, reverse the previous step by one...
             current_cell[0] -= current_operation[0]
             current_cell[1] -= current_operation[1]
 
-            # Get the next operation
+            # Then get the next operation.
             next_op = possible_operations.index(current_operation) + 1
             next_op = next_op if next_op < len(possible_operations) else 0
             current_operation = possible_operations[next_op]

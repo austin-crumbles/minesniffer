@@ -11,7 +11,15 @@
         "Totally tubular!",
         "Ya did it matey",
         ":D",
-        ":)"
+        ":)",
+        "You saved us!",
+        "<3",
+        "I think I love you",
+        "You are the chosen one",
+        "May the odds be ever in your favor",
+        "May the force be with you",
+        "May the force be ever in your favor",
+        "May the odds be with you"
     ],
     "LOSE": [
         "Oof...",
@@ -32,6 +40,9 @@
         "rip",
         "ripperoni",
         "rest in peace",
-        "rest in pieces"
+        "rest in pieces",
+        "rest in pizza",
+        "Oopsie doodles!",
+        "Aw shucks."
     ]
 }

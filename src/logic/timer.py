@@ -39,14 +39,16 @@ class GameTimer(threading.Thread):
 
             # If paused, the Timer continues to run on the thead, 
             # but does not keep track of the time
-            if self.state != TimerState.PAUSED:
-                self.time += 1
-                self.calc()
-                self.callback()
+            if self.state == TimerState.PAUSED:
+                continue
+
+            self.time += 1
+            self.calc()
+            self.callback()
 
     def stop(self) -> None:
         """
-        Stop the timer. `stop()` can only be called if `self.state` is `IDLE`.
+        Stop the timer. `stop()` can only be called if `self.state` is not `IDLE`.
         """
         if self.state != TimerState.IDLE:
             self.state = TimerState.STOPPED

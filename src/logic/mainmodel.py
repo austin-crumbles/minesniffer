@@ -43,7 +43,7 @@ class GameData:
         dist = MINE_DISTRIBUTION[difficulty]
         tuner = 98000
 
-        # Quadratic formula, where `tuner` is 200x the max gridsize
+        # Quadratic formula, where `tuner` is 20x the max gridsize
         num_mines = math.floor(gridsize * (dist + (gridsize / tuner)))
         self.num_mines = num_mines
 
@@ -112,7 +112,7 @@ class GameData:
         `(row, col)` to that number.
 
         `operation` is "add" for normal gameboard creation, but can be "subtract" when
-        a mine needs to be removed (such as when replacing a mine on the user"s first
+        a mine needs to be removed (such as when replacing a mine on the user's first
         move.)
         """
         neighbors = gridtools.get_neighbor_cells(self.gameboard, row, col)

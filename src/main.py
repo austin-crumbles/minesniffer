@@ -3,7 +3,6 @@ import json
 import random
 import logging
 import os
-from typing import Union
 from tkinter import BooleanVar, StringVar, IntVar, Tk
 from ui.mainview import GameView
 from ui.attributes import FuncAttributes, VarAttributes
@@ -79,7 +78,7 @@ class Gameapp():
     def validate_dims(self):
         """
         Validate the user-defined dimensions of the playing field.
-        Dimensions may not be 0 units, nor exceed 70 units.
+        Dimensions may not be 0 units, nor exceed `MAX_DIM_SIZE` units.
         """
         validate = True
 
@@ -244,7 +243,7 @@ class Gameapp():
         self.view.interrupt_timer_update = True
         self.model.stop_timer()
 
-        # No need to reveal all the times if the player has won, because
+        # No need to reveal all the tiles if the player has won, because
         # all the tiles are already revealed!
         if self.model.game_state == GameState.LOSE:
             secrets.reveal_all(self.get_gameboard(), self.tile_updates)
@@ -387,11 +386,14 @@ def main():
 
 if __name__ == "__main__":
     import sys
+    import os
 
     # Check if the app is running from source or from a bundled app
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-        import os
         os.chdir(sys._MEIPASS)
+    else:
+        os.chdir("./src")
+
 
     # Install the settings file into the App Support folder if it isn't installed
     if not os.path.isdir(APPSUPPORT_PATH):

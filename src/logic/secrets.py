@@ -12,7 +12,8 @@ def reveal(gameboard, row, col, tile_updates):
     """
     current_cell = gameboard[row][col]
 
-    # If the cell is flagged, or already revealed, for instance.
+    # A cell is "not revealable" if the cell is flagged, or already revealed,
+    # for instance. If the cell is not revealable, then continue the game.
     if not is_revealable(current_cell):
         return GameState.CONTINUE
 
@@ -59,7 +60,8 @@ def recursive_cell_reveal(gameboard, current_cell, tile_updates) -> list:
     # Loop over the neighbors that need to be revealed, adding additional neighbors
     # only if the neighbors of the current cell have empty clues. Everything in this 
     # list will inherantly be revealable, and there will not be duplication from 
-    # previous cycles.
+    # previous cycles (because the `is_revealable` function will weed out cells
+    # that have already been revealed).
     for cell in cells_to_reveal:
         if cell["hint"] is None:
             recursive_cell_reveal(gameboard, cell, tile_updates)
